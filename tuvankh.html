@@ -1,0 +1,917 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+.w{width:100%;font-family:var(--font-sans);font-size:12px;line-height:1.6;color:var(--color-text-primary)}
+/* Header */
+.main-hdr{background:#0F6E56;border-radius:10px;padding:14px 20px;text-align:center;margin-bottom:14px}
+.main-hdr h1{font-size:14px;font-weight:500;color:#fff;margin-bottom:3px}
+.main-hdr p{font-size:11px;color:#9FE1CB}
+/* Section wrappers */
+.section{border-radius:9px;margin-bottom:12px;overflow:hidden;border:0.5px solid}
+.sec-hdr{padding:9px 14px;font-size:12.5px;font-weight:500;color:#fff}
+.sec-body{padding:10px 12px}
+/* Colour themes */
+.s-teal{border-color:#0F6E56}.s-teal .sec-hdr{background:#0F6E56}.s-teal .sec-body{background:#E1F5EE}
+.s-purple{border-color:#534AB7}.s-purple .sec-hdr{background:#534AB7}.s-purple .sec-body{background:#EEEDFE}
+.s-amber{border-color:#854F0B}.s-amber .sec-hdr{background:#854F0B}.s-amber .sec-body{background:#FAEEDA}
+.s-blue{border-color:#185FA5}.s-blue .sec-hdr{background:#185FA5}.s-blue .sec-body{background:#E6F1FB}
+.s-coral{border-color:#993C1D}.s-coral .sec-hdr{background:#993C1D}.s-coral .sec-body{background:#FAECE7}
+.s-gray{border-color:#5F5E5A}.s-gray .sec-hdr{background:#5F5E5A}.s-gray .sec-body{background:#F1EFE8}
+.s-green{border-color:#3B6D11}.s-green .sec-hdr{background:#3B6D11}.s-green .sec-body{background:#EAF3DE}
+/* Row / col layout */
+.row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:nowrap}
+.row:last-child{margin-bottom:0}
+.col{flex:1;border-radius:7px;padding:9px 11px;min-width:0;border:0.5px solid rgba(0,0,0,0.1);background:#fff}
+.col-title{font-size:11px;font-weight:500;margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
+.s-teal .col-title{color:#085041}
+.s-purple .col-title{color:#3C3489}
+.s-amber .col-title{color:#633806}
+.s-blue .col-title{color:#0C447C}
+.s-coral .col-title{color:#712B13}
+.s-gray .col-title{color:#444441}
+.s-green .col-title{color:#27500A}
+/* Item */
+.item{margin-bottom:6px;padding-bottom:6px;border-bottom:0.5px solid rgba(0,0,0,0.07)}
+.item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.vn{font-size:12px;font-weight:500;margin-bottom:1px;color:var(--color-text-primary)}
+.en{font-size:11px;font-style:italic;margin-bottom:1px;color:var(--color-text-secondary)}
+.jp{font-size:11px;color:#3C3489}
+.s-teal .jp{color:#085041}
+.s-amber .jp{color:#633806}
+.s-blue .jp{color:#0C447C}
+.s-coral .jp{color:#712B13}
+.s-gray .jp{color:#444441}
+.s-green .jp{color:#27500A}
+/* Dialog */
+.dialog-box{background:#fff;border-radius:7px;padding:8px 10px;margin-bottom:7px;border:0.5px solid rgba(0,0,0,0.1)}
+.dialog-box:last-child{margin-bottom:0}
+.speaker{font-size:10.5px;font-weight:500;margin-bottom:3px}
+.sp-nason{color:#0F6E56}
+.sp-kanri{color:#534AB7}
+.d-vn{font-size:11.5px;margin-bottom:1px;color:var(--color-text-primary)}
+.d-jp{font-size:11px;color:#534AB7;margin-bottom:1px}
+.d-en{font-size:11px;font-style:italic;color:var(--color-text-secondary)}
+/* Vocab table */
+.vtable{width:100%;border-collapse:collapse;font-size:11px}
+.vtable th{background:#534AB7;color:#fff;padding:5px 8px;text-align:left;font-weight:500}
+.vtable td{padding:5px 8px;border-bottom:0.5px solid rgba(0,0,0,0.07)}
+.vtable tr:nth-child(even) td{background:rgba(0,0,0,0.03)}
+.vtable .jp-cell{color:#3C3489;font-weight:500}
+.legend{display:flex;justify-content:center;gap:20px;margin-top:10px;font-size:11px;color:var(--color-text-secondary)}
+/* NSH LOGO */
+.nsh-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:10px}
+.nsh-tiles{display:flex;gap:4px}
+.nsh-tile{border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:700;font-style:italic;color:#fff;font-family:Georgia,serif}
+.tile-n{background:linear-gradient(135deg,#00C9A7,#0099CC)}
+.tile-s{background:linear-gradient(135deg,#FF9EC4,#FF6B9D)}
+.tile-h{background:linear-gradient(135deg,#00BFFF,#0066FF)}
+.nsh-footer{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 16px;border-radius:8px;background:var(--color-bg-secondary,#F1EFE8);border:0.5px solid var(--color-border-tertiary,#CCCCCC);margin-top:12px}
+</style>
+
+<div class="w">
+
+<!-- HEADER -->
+<div class="main-hdr">
+  <div class="nsh-logo">
+    <div class="nsh-tiles">
+      <div class="nsh-tile tile-n" style="width:36px;height:36px;font-size:18px">n</div>
+      <div class="nsh-tile tile-s" style="width:36px;height:36px;font-size:18px">s</div>
+      <div class="nsh-tile tile-h" style="width:36px;height:36px;font-size:18px">h</div>
+    </div>
+    <div>
+      <div style="font-size:10.5px;color:#9FE1CB;font-weight:500">株式会社</div>
+      <div style="font-size:16px;font-weight:700;color:#00BFFF;letter-spacing:0.5px">NASON HOME</div>
+      <div style="font-size:10px;color:rgba(255,255,255,0.75)">XÂY GIÁ TRỊ _ TẠO NIỀM TIN</div>
+    </div>
+  </div>
+  <h1>QUY TRÌNH TƯ VẤN KHÁCH HÀNG — 株式会社ネイソンホーム</h1>
+  <p>Customer Consultation Guide · 顧客対応マニュアル</p>
+  <p style="margin-top:2px">Tài liệu nội bộ · Internal Document · 社内資料</p>
+</div>
+
+<!-- ══ A. KHAI THÁC THÔNG TIN KHÁCH ══ -->
+<div class="section s-teal">
+  <div class="sec-hdr">A. KHAI THÁC THÔNG TIN KHÁCH HÀNG · Client Information Gathering · 顧客情報ヒアリング</div>
+  <div class="sec-body">
+    <div class="row">
+      <div class="col">
+        <div class="col-title">Các câu hỏi khai thác cơ bản · Key Questions · 基本質問項目</div>
+        <div class="item">
+          <div class="vn">Visa gì? (Loại visa đang sử dụng)</div>
+          <div class="en">What visa type do they hold?</div>
+          <div class="jp">ビザの種類は何ですか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">Muốn tìm nhà ở khu vực nào?</div>
+          <div class="en">Which area are they looking for?</div>
+          <div class="jp">どのエリアで物件をお探しですか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">Mong muốn giá nhà bao nhiêu, mấy phòng?</div>
+          <div class="en">Desired rent and number of rooms?</div>
+          <div class="jp">希望家賃・間取りはいくらですか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">Khi nào chuyển nhà? Ở một mình hay với bạn bè?</div>
+          <div class="en">When to move? Alone or with others?</div>
+          <div class="jp">いつ引越し予定ですか？お一人ですか、友人と一緒ですか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">Muốn gần công ty hay gần ga tàu điện?</div>
+          <div class="en">Prefer close to workplace or train station?</div>
+          <div class="jp">職場と駅、どちらを優先されますか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">Khách có cần bãi đỗ ô tô không? Đi làm bằng phương tiện gì?</div>
+          <div class="en">Need parking? How do they commute?</div>
+          <div class="jp">駐車場は必要ですか？通勤手段は何ですか？</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">Lưu ý tư vấn · Consultation Notes · 対応のポイント</div>
+        <div class="item">
+          <div class="vn">Thông tin trên đủ để tìm nhà phù hợp cho khách</div>
+          <div class="en">This information is sufficient to find suitable properties</div>
+          <div class="jp">上記情報があれば適切な物件を提案できます</div>
+        </div>
+        <div class="item">
+          <div class="vn">Trong lúc tư vấn, khách có thể thay đổi điều kiện — hãy linh hoạt hướng khách vào nhà phù hợp</div>
+          <div class="en">Clients may change conditions during consultation — be flexible and guide them to suitable properties</div>
+          <div class="jp">相談中に条件が変わることがある。柔軟に対応し、適切な物件に誘導する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Khi khách đưa ra lời từ chối, tham khảo tài liệu xử lý từ chối trong bán hàng</div>
+          <div class="en">When objections arise, refer to the sales objection handling document</div>
+          <div class="jp">断りが出た場合は、販売用反論処理マニュアルを参照すること</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ B. CÁC DẠNG NHÀ TẠI NHẬT ══ -->
+<div class="section s-purple">
+  <div class="sec-hdr">B. KIẾN THỨC BĐS — CÁC DẠNG NHÀ TẠI NHẬT · Property Types in Japan · 日本の物件種別</div>
+  <div class="sec-body">
+
+    <!-- 1. Nhà hệ thống -->
+    <div class="col-title" style="margin-bottom:8px;color:#3C3489;font-size:12px">1. NHÀ HỆ THỐNG · System Properties · システム物件</div>
+    <div class="row">
+      <div class="col">
+        <div class="col-title">VILLA HOUSE (全国 · Toàn quốc)</div>
+        <div class="item">
+          <div class="vn">Có khắp toàn Nhật Bản</div>
+          <div class="en">Available nationwide throughout Japan</div>
+          <div class="jp">全国に展開している</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đối tượng: kỹ sư, tokutei (đặc định), hộ gia đình</div>
+          <div class="en">Target: engineers, tokutei visa holders, families</div>
+          <div class="jp">対象：エンジニア・特定技能・ファミリー</div>
+        </div>
+        <div class="item">
+          <div class="vn">Giá rẻ so với thị trường, không cần đầu vào nhiều</div>
+          <div class="en">Below market price, low initial costs</div>
+          <div class="jp">相場より安く、初期費用が少ない</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tỷ lệ đỗ hồ sơ gần như 100%, dễ chốt</div>
+          <div class="en">Near 100% approval rate, easy to close</div>
+          <div class="jp">審査通過率はほぼ100%、成約しやすい</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đầu vào: 2 tháng tiền nhà + 1 man bảo hiểm (có 2 tháng tiền nhà)</div>
+          <div class="en">Initial: 2 months rent + ¥10,000 insurance (with 2 months deposit)</div>
+          <div class="jp">初期費用：家賃2ヶ月分＋保険1万円（敷金2ヶ月あり）</div>
+        </div>
+        <div class="item">
+          <div class="vn">Phí Soji (掃除費): đóng khi ra nhà — 1,210円/m²</div>
+          <div class="en">Cleaning fee paid at move-out: ¥1,210/m²</div>
+          <div class="jp">退去時に清掃費1,210円/m²を支払う</div>
+        </div>
+        <div class="item">
+          <div class="vn">Nếu visa tokutei: có thể yêu cầu đặt cọc 2 tháng thêm</div>
+          <div class="en">If tokutei visa: may require additional 2-month deposit</div>
+          <div class="jp">特定技能ビザの場合：敷金2ヶ月追加の可能性あり</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">LEOPALACE 21 (全国 · Toàn quốc)</div>
+        <div class="item">
+          <div class="vn">Có khắp toàn Nhật Bản</div>
+          <div class="en">Available nationwide</div>
+          <div class="jp">全国展開</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đối tượng: chủ yếu du học sinh (DHS) và người đi làm</div>
+          <div class="en">Target: mainly international students and workers</div>
+          <div class="jp">主に留学生・社会人向け</div>
+        </div>
+        <div class="item">
+          <div class="vn">Giá cao hơn thị trường, nhà có đầy đủ đồ dùng</div>
+          <div class="en">Above market price, fully furnished</div>
+          <div class="jp">相場より高いが、家具家電が揃っている</div>
+        </div>
+        <div class="item">
+          <div class="vn">Dễ đỗ hồ sơ, tỷ lệ trượt hầu như không có</div>
+          <div class="en">Easy approval, almost no rejection</div>
+          <div class="jp">審査に通りやすく、落とされることはほぼない</div>
+        </div>
+        <div class="item">
+          <div class="vn">Thường có khuyến mãi: 2 tháng miễn phí, không cọc, không lễ, có phí vệ sinh (ダブル割, 礼金なし, 敷金なし)</div>
+          <div class="en">Often offers: 2 free months, no deposit, no key money, cleaning fee applies (Double discount, no reikin, no shikikin)</div>
+          <div class="jp">キャンペーンが多い：2ヶ月フリーレント・礼金なし・敷金なし・クリーニング代あり（ダブル割）</div>
+        </div>
+        <div class="item">
+          <div class="vn">Cách tính có công thức riêng trên app Leopalace</div>
+          <div class="en">Special calculation formula on the Leopalace app</div>
+          <div class="jp">レオパレスのアプリで独自の計算方式がある</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:2px">
+      <div class="col">
+        <div class="col-title">MUSASHI / ムサシ (Chỉ Kanto · 関東のみ)</div>
+        <div class="item">
+          <div class="vn">Chỉ có ở khu vực Kanto (Tokyo, Kanagawa, Saitama, Chiba)</div>
+          <div class="en">Only in Kanto region (Tokyo, Kanagawa, Saitama, Chiba)</div>
+          <div class="jp">関東エリア限定（東京・神奈川・埼玉・千葉）</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đối tượng: du học sinh, người đi làm, gia đình</div>
+          <div class="en">Target: international students, workers, families</div>
+          <div class="jp">対象：留学生・社会人・ファミリー</div>
+        </div>
+        <div class="item">
+          <div class="vn">Nhà khá đẹp, giá vừa phải so với khu vực</div>
+          <div class="en">Fairly nice properties, reasonable prices for the area</div>
+          <div class="jp">きれいな物件が多く、エリアの相場と比べてリーズナブル</div>
+        </div>
+        <div class="item">
+          <div class="vn">Hay có khuyến mãi: 3万パック、5万パック、8万パック (tổng đầu vào 3 man, 5 man, 8 man)</div>
+          <div class="en">Common campaigns: ¥30,000 / ¥50,000 / ¥80,000 initial cost packages</div>
+          <div class="jp">キャンペーン多数：3万パック・5万パック・8万パック</div>
+        </div>
+        <div class="item">
+          <div class="vn">Nếu không có khuyến mãi thì tính bình thường</div>
+          <div class="en">Without campaign: standard calculation applies</div>
+          <div class="jp">キャンペーンなしの場合は通常計算</div>
+        </div>
+        <div class="item">
+          <div class="vn">Phí Soji tính khi ra nhà, tùy tình trạng nhà</div>
+          <div class="en">Cleaning fee charged at move-out depending on property condition</div>
+          <div class="jp">退去時の清掃費は物件の状態による</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">APAMAN (全国) · ROBOT HOME (全国)</div>
+        <div class="item">
+          <div class="vn">APAMAN: Toàn Nhật, đối tượng tất cả mọi người, nhà rẻ so với khu vực, đầu vào thấp</div>
+          <div class="en">APAMAN: Nationwide, all demographics, below-market rent, low initial costs</div>
+          <div class="jp">APAMAN：全国・全客層・相場より安い・初期費用低め</div>
+        </div>
+        <div class="item">
+          <div class="vn">APAMAN hay có KM: 55パック、3万パック (5sen5 + phí bảo lãnh hoặc 3 man cộng bảo lãnh)</div>
+          <div class="en">Common campaigns: ¥55,000 package, ¥30,000 package (plus guarantee fee)</div>
+          <div class="jp">55パック・3万パックのキャンペーンが多い（保証料別）</div>
+        </div>
+        <div class="item">
+          <div class="vn">Phí Soji APAMAN: thường là 5man5 có thuế khi ra nhà</div>
+          <div class="en">APAMAN cleaning fee: usually ¥55,000 incl. tax at move-out</div>
+          <div class="jp">APAMAN退去清掃費：通常5万5千円（税込）</div>
+        </div>
+        <div class="item">
+          <div class="vn">ROBOT HOME: Toàn Nhật, nhà rẻ, đầu vào thấp, tỷ lệ đỗ 100%</div>
+          <div class="en">ROBOT HOME: Nationwide, low rent, low initial costs, 100% approval rate</div>
+          <div class="jp">ロボットホーム：全国・安い・初期費用低い・審査通過率100%</div>
+        </div>
+        <div class="item">
+          <div class="vn">ROBOT có KM: 0円、1万、3万、5万、8万、10万、12万パック</div>
+          <div class="en">ROBOT campaigns: ¥0 / ¥10,000 / ¥30,000 / ¥50,000 / ¥80,000 / ¥100,000 / ¥120,000 packages</div>
+          <div class="jp">ロボットのキャンペーン：0円・1万・3万・5万・8万・10万・12万パック</div>
+        </div>
+        <div class="item">
+          <div class="vn">Phí Soji ROBOT: thường là 3man8 có thuế khi ra nhà</div>
+          <div class="en">ROBOT cleaning fee: usually ¥38,000 incl. tax at move-out</div>
+          <div class="jp">ロボット退去清掃費：通常3万8千円（税込）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Nhà ngoài -->
+    <div class="col-title" style="margin-top:8px;margin-bottom:6px;color:#3C3489;font-size:12px">2. NHÀ NGOÀI HỆ THỐNG · Non-System Properties · 一般物件</div>
+    <div class="row">
+      <div class="col">
+        <div class="col-title">Đặc điểm · Features · 特徴</div>
+        <div class="item">
+          <div class="vn">Có khắp toàn Nhật, rất nhiều, nhiều công ty chủ nhà và quản lý khác nhau</div>
+          <div class="en">Available nationwide, many options, various owner and management companies</div>
+          <div class="jp">全国にあり、多数の大家・管理会社がいる</div>
+        </div>
+        <div class="item">
+          <div class="vn">Nhà có nhiều dạng rẻ đắt đều có, đối tượng cho tất cả mọi người</div>
+          <div class="en">Wide range from cheap to expensive, open to all demographics</div>
+          <div class="jp">安い～高い幅広い物件がある。全客層が対象</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tỷ lệ đỗ phụ thuộc vào hồ sơ khách và người làm hồ sơ</div>
+          <div class="en">Approval depends on client's documents and the person handling the application</div>
+          <div class="jp">審査通過率は申込書の内容と担当者に依存する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đầu vào: tùy từng căn có khuyến mãi hay không, có cọc có lễ hay không</div>
+          <div class="en">Initial costs vary: depends on whether there are campaigns, deposit, and key money</div>
+          <div class="jp">初期費用：キャンペーン・敷金・礼金の有無によって異なる</div>
+        </div>
+        <div class="item">
+          <div class="vn">Phí Soji có thể đóng trước hoặc sau tùy công ty chủ nhà</div>
+          <div class="en">Cleaning fee: may be paid before or after depending on owner company</div>
+          <div class="jp">清掃費：大家会社によって前払い・後払いが異なる</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">Cách tính đầu vào · Initial Cost Formula · 初期費用計算</div>
+        <div class="item">
+          <div class="vn">TIỀN NHÀ × 2 (1 tháng tiền nhà + phí cty bảo lãnh)</div>
+          <div class="en">RENT × 2 (1 month rent + guarantee company fee)</div>
+          <div class="jp">家賃×2（家賃1ヶ月分＋保証会社費用）</div>
+        </div>
+        <div class="item">
+          <div class="vn">+ BẢO HIỂM CHÁY NỔ (bắt buộc)</div>
+          <div class="en">+ FIRE INSURANCE (mandatory)</div>
+          <div class="jp">＋火災保険（必須）</div>
+        </div>
+        <div class="item">
+          <div class="vn">+ CHÌA KHÓA (nếu có)</div>
+          <div class="en">+ KEY EXCHANGE FEE (if applicable)</div>
+          <div class="jp">＋鍵交換費（ある場合）</div>
+        </div>
+        <div class="item">
+          <div class="vn">+ PHÍ サポート (nếu có) — phí hỗ trợ, phí an ninh 24h</div>
+          <div class="en">+ SUPPORT FEE (if any) — 24-hour support/security fee</div>
+          <div class="jp">＋サポート費（ある場合）24時間サポート費</div>
+        </div>
+        <div class="item">
+          <div class="vn">+ KHỬ TRÙNG KHỬ TRÙNG (nếu có)</div>
+          <div class="en">+ DISINFECTION FEE (if applicable)</div>
+          <div class="jp">＋消毒費（ある場合）</div>
+        </div>
+        <div class="item">
+          <div class="vn">+ PHÍ MÔI GIỚI = PHÍ CHYUKAI (công ty mình nhận)</div>
+          <div class="en">+ BROKERAGE FEE = CHYUKAI (received by our company)</div>
+          <div class="jp">＋仲介手数料（弊社が受領）</div>
+        </div>
+        <div class="item">
+          <div class="vn">+ PHÍ SOJI: trả trước thì cộng vào, trả sau thì không cộng vào tổng đầu vào</div>
+          <div class="en">+ CLEANING FEE: if paid upfront add to total; if paid at move-out do not include in initial total</div>
+          <div class="jp">＋清掃費：前払いなら初期費用に含む。後払いなら含めない</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Mặt bằng -->
+    <div class="row" style="margin-top:2px">
+      <div class="col">
+        <div class="col-title">3. MẶT BẰNG KINH DOANH · Commercial Space · 事業用物件</div>
+        <div class="item">
+          <div class="vn">Bao gồm: văn phòng, quán ăn, kho bãi...</div>
+          <div class="en">Includes: offices, restaurants, warehouses...</div>
+          <div class="jp">事務所・飲食店・倉庫などが含まれる</div>
+        </div>
+        <div class="item">
+          <div class="vn">Thường tìm trên AT HOME và REINS</div>
+          <div class="en">Usually found on AT HOME and REINS platforms</div>
+          <div class="jp">通常はアットホームとREINSで検索する</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">Kiểu tòa nhà · Building Types · 建物種別</div>
+        <div class="item">
+          <div class="vn">貸マンション (Chung cư cho thuê) — dạng nhà phổ biến nhất</div>
+          <div class="en">Rental apartment building — most common type</div>
+          <div class="jp">貸マンション：最も一般的な賃貸物件</div>
+        </div>
+        <div class="item">
+          <div class="vn">2DK / 1K / 1LDK... là ký hiệu số phòng và diện tích</div>
+          <div class="en">2DK / 1K / 1LDK... denote room count and layout</div>
+          <div class="jp">2DK・1K・1LDKは間取り表示</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ C. HƯỚNG DẪN GỌI ĐIỆN ══ -->
+<div class="section s-blue">
+  <div class="sec-hdr">C. HƯỚNG DẪN GỌI ĐIỆN CHO CÔNG TY QUẢN LÝ NHÀ · Calling Property Management Companies · 管理会社への電話対応マニュアル</div>
+  <div class="sec-body">
+
+    <div class="col-title" style="margin-bottom:8px;color:#0C447C;font-size:12px">10 TRƯỜNG HỢP CẦN GỌI ĐIỆN · 10 Scenarios to Call · 10の電話すべき場面</div>
+    <div class="row">
+      <div class="col">
+        <div class="item"><div class="vn">1.1 Gọi check thông tin nhà (phòng còn trống không?)</div><div class="en">1.1 Check property info (is the room still available?)</div><div class="jp">1.1 物件情報確認（空室確認）</div></div>
+        <div class="item"><div class="vn">1.2 Gọi xác nhận xem nhà còn không và hỏi cách xem nhà</div><div class="en">1.2 Confirm availability and ask how to arrange viewing</div><div class="jp">1.2 空室確認・内見方法の問い合わせ</div></div>
+        <div class="item"><div class="vn">1.3 Gọi báo đã gửi fax xin xem nhà và hỏi cách xem nhà</div><div class="en">1.3 Inform that a viewing request fax was sent and ask about the process</div><div class="jp">1.3 内見申込FAX送付の連絡・内見方法の確認</div></div>
+        <div class="item"><div class="vn">1.4 Gọi báo kết quả xem nhà (khách chưa quyết định thuê)</div><div class="en">1.4 Report viewing result (client has not decided to rent yet)</div><div class="jp">1.4 内見結果報告（未決定の場合）</div></div>
+        <div class="item"><div class="vn">1.5 Gọi báo kết quả xem nhà (khách quyết định thuê)</div><div class="en">1.5 Report viewing result (client decided to rent)</div><div class="jp">1.5 内見結果報告（入居決定の場合）</div></div>
+      </div>
+      <div class="col">
+        <div class="item"><div class="vn">1.6 Gọi báo đã gửi thông tin đăng ký nhà</div><div class="en">1.6 Inform that the registration documents have been sent</div><div class="jp">1.6 入居申込書類の送付連絡</div></div>
+        <div class="item"><div class="vn">1.7 Gọi hỏi kết quả xét duyệt hồ sơ đăng ký nhà</div><div class="en">1.7 Ask about the application review result</div><div class="jp">1.7 入居審査結果の問い合わせ</div></div>
+        <div class="item"><div class="vn">1.8 Gọi thông báo ngày vào nhà và hẹn ngày ký hợp đồng</div><div class="en">1.8 Notify move-in date and schedule contract signing</div><div class="jp">1.8 入居日の連絡・契約締結日の調整</div></div>
+        <div class="item"><div class="vn">1.9 Gọi thông báo đã chuyển tiền đầu vào</div><div class="en">1.9 Notify that the initial payment has been transferred</div><div class="jp">1.9 初期費用の振込完了の連絡</div></div>
+        <div class="item"><div class="vn">1.10 Nếu ký hợp đồng ở công ty mình thì ký xong cần báo họ</div><div class="en">1.10 If contract is signed at our company, inform them after signing</div><div class="jp">1.10 弊社で契約締結した場合は署名後に連絡する</div></div>
+      </div>
+    </div>
+
+    <!-- Dialog samples -->
+    <div class="col-title" style="margin-top:10px;margin-bottom:8px;color:#0C447C;font-size:12px">MẪU HỘI THOẠI GỌI ĐIỆN · Sample Phone Conversations · 電話会話サンプル</div>
+
+    <!-- Dialog 2: Gọi check -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">2. Gọi check thông tin nhà còn không · Checking Room Availability · 空室確認電話</div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社 (Property Management Co. · 管理会社):</div>
+        <div class="d-jp">はい、お電話ありがとうございます、株式会社トータルサポートでございます</div>
+        <div class="d-vn">Vâng, cảm ơn vì đã gọi điện, công ty トータルサポート xin nghe.</div>
+        <div class="d-en">Yes, thank you for calling, this is トータルサポート Corporation.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">いつもお世話になっております、株式会社イントラコム、トウカイのカン申します。いつも大変お世話になっております。</div>
+        <div class="d-vn">Cảm ơn vì luôn giúp đỡ, chiếu cố chúng tôi trong thời gian qua, tôi tên là [tên] của công ty 株式会社ネイソンホーム</div>
+        <div class="d-en">Thank you for your continued support. I'm [name] from 株式会社ネイソンホーム.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">賃貸物件の確認をお願いいたしたいですが、よろしいでしょうか。物件名は富士建LKビルの201号室、まだございますか。</div>
+        <div class="d-vn">Tôi muốn kiểm tra thông tin của toà nhà, có được không? Cho tôi hỏi toà nhà 富士建LKビル phòng 201 có còn không?</div>
+        <div class="d-en">I'd like to confirm a property, is that okay? Is room 201 of 富士建LKビル still available?</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">はい、まだあります。（ご紹介可能です）募集中です。</div>
+        <div class="d-vn">Vâng, vẫn còn ạ. Vẫn có thể giới thiệu cho khách. Vẫn đang trong quá trình tuyển khách hàng.</div>
+        <div class="d-en">Yes, it's still available. We can introduce it. It's currently accepting applications.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">はい、ちなみにベトナムの留学生はご紹介可能ですか。</div>
+        <div class="d-vn">Vâng, cụ thể thì tôi muốn hỏi có thể giới thiệu cho du học sinh Việt Nam thuê hay không?</div>
+        <div class="d-en">Also, is it possible to introduce a Vietnamese international student?</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">はい、大丈夫です。相談可能です。保証会社をおりたら、大丈夫です。</div>
+        <div class="d-vn">Vâng, không có vấn đề gì. OK. Có thể trao đổi được. Nếu công ty bảo lãnh xét duyệt và OK thì không có vấn đề gì.</div>
+        <div class="d-en">Yes, no problem. It's negotiable. If the guarantee company approves, there's no issue.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">はい、保証会社はどちらですか。各社の保証会社を使っていますか。</div>
+        <div class="d-vn">Vâng, công ty bảo lãnh là công ty nào vậy ạ. Các bạn đang sử dụng công ty bảo lãnh nào vậy ạ.</div>
+        <div class="d-en">May I ask which guarantee company you use?</div>
+      </div>
+    </div>
+
+    <!-- Dialog 3: Check và hỏi xem nhà -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">3. Gọi check lại xem nhà còn không và hỏi cách xem · Re-confirm &amp; Ask How to View · 再確認・内見方法の問い合わせ</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">内見方法はどうしますか。</div>
+        <div class="d-vn">Vâng, cho tôi hỏi cách thức xem nhà thì như thế nào ạ?</div>
+        <div class="d-en">How do we arrange a property viewing?</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">名刺ファックスでいいです。Faxで大丈夫。</div>
+        <div class="d-vn">Bạn gửi Fax danh thiếp của bạn qua đây là ok.</div>
+        <div class="d-en">Please fax your business card to us, that's fine.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">お待たせしました、届いております。内見方法を教えます。ドアにキボックスがあります、番号は0000です。ご玄関前の先のキーボックスの番号は0000です。</div>
+        <div class="d-vn">Xin lỗi đã để bạn đợi lâu, tôi đã nhận được, bây giờ tôi sẽ hướng dẫn cách xem nhà. Ở trước cửa có treo 1 hộp đựng chìa khoá, mật khẩu là 0000. Có rất nhiều chỗ để chìa khoá khác nhau nhưng thường họ sẽ để như cách trên.</div>
+        <div class="d-en">Sorry for the wait. Here's how to view: there's a key box at the front door, the code is 0000. There are many ways to store keys but this is the most common.</div>
+      </div>
+    </div>
+
+    <!-- Dialog 4: Báo đã gửi FAX -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">4. Gọi báo đã gửi FAX xin xem nhà · Notifying FAX Sent · FAX送付連絡</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">富士建LKビルの201号室の内見申込書をFAXで送りましたので、ご確認をお願い致します。</div>
+        <div class="d-vn">Tôi đã gửi FAX đăng kí xem nhà phòng 201 của toà nhà 富士建LKビル, vui lòng kiểm tra giúp tôi.</div>
+        <div class="d-en">I have sent the viewing application form for room 201 of 富士建LKビル by fax. Please check it.</div>
+      </div>
+    </div>
+
+    <!-- Dialog 5: Báo kết quả xem nhà chưa chốt -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">5. Báo kết quả xem nhà (chưa chốt) · Reporting Viewing Result (Not Closed) · 内見結果報告（未決定）</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">富士建LKビルの201号室を内見させて頂き、ありがとうございます。お客様はもう少し考えますので、またよろしくお願いいたします。</div>
+        <div class="d-vn">Cảm ơn bạn đã cho tôi đi xem toà nhà 富士建LKビル phòng 201. Khách hàng muốn suy nghĩ thêm 1 chút, thế nên rất mong nhận được sự giúp đỡ của bạn lần tới.</div>
+        <div class="d-en">Thank you for letting us view room 201 of 富士建LKビル. The client needs a little more time to consider, so we hope to work with you again.</div>
+      </div>
+    </div>
+
+    <!-- Dialog 6: Báo kết quả xem nhà đã chốt -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">6. Báo kết quả xem nhà (khách đã chốt thuê) · Reporting Viewing Result (Closed) · 内見結果報告（入居決定）</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">富士建LKビルの201号室を内見させて頂き、ありがとうございます。お客様はもう決まりましたので、申込書を送って頂けませんか。</div>
+        <div class="d-vn">Cảm ơn bạn đã cho tôi đi xem toà nhà 富士建LKビル phòng 201. Vì khách hàng đã quyết định thuê nhà, thế nên bạn có thể gửi cho tôi bản đăng ký thuê nhà được không.</div>
+        <div class="d-en">Thank you for the viewing of room 201 at 富士建LKビル. The client has decided to rent. Could you send us the application form?</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">ありがとうございます、ファックス番号を教えて頂けませんか。</div>
+        <div class="d-vn">Cảm ơn bạn, phiền bạn đọc cho tôi số máy Fax của công ty bạn để tôi gửi giấy tờ.</div>
+        <div class="d-en">Thank you, could you tell me your company's fax number so I can send the documents?</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">申し上げます。03-3918-5012でございます。</div>
+        <div class="d-vn">Vâng tôi xin đọc, số máy Fax của công ty tôi là 03-3918-5012.</div>
+        <div class="d-en">Of course. Our fax number is 03-3918-5012.</div>
+      </div>
+    </div>
+
+    <!-- Dialog 7: Gửi thông tin đăng ký -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">7. Gọi báo đã gửi thông tin đăng ký nhà · Notifying Registration Documents Sent · 入居申込書送付の連絡</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">すみませんが、富士建LKビルの201号室の申込書をファックスでお送りしましたので、ご確認をお願い致します。</div>
+        <div class="d-vn">Xin lỗi nhưng tôi đã gửi giấy đăng ký nhà ở của toà nhà 富士建LKビル phòng 201 qua FAX, bạn làm ơn kiểm tra giúp tôi xem đã tới chưa ạ.</div>
+        <div class="d-en">Excuse me, I have sent the application form for room 201 of 富士建LKビル by fax. Please check if it has arrived.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">お待たせしました、届けました、これから審査入ります。</div>
+        <div class="d-vn">Xin lỗi đã để bạn đợi lâu, bản đăng ký đã gửi đến, bây giờ chúng tôi sẽ bắt đầu công việc xét duyệt.</div>
+        <div class="d-en">Sorry for the wait. We have received it and will now begin the review process.</div>
+      </div>
+    </div>
+
+    <!-- Dialog 8: Hỏi kết quả xét duyệt -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">8. Gọi hỏi kết quả xét duyệt hồ sơ · Asking About Application Review Result · 審査結果の問い合わせ</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">すみませんが、高橋様がいらっしゃいますか。富士建LKビルの201号室の審査結果を確認したいですが、審査結果はどうされていますか。</div>
+        <div class="d-vn">Xin lỗi nhưng ông Takahashi có ở đó không ạ. Tôi muốn hỏi về kết quả xét duyệt hồ sơ của căn nhà 富士建LKビル phòng 201.</div>
+        <div class="d-en">Excuse me, is Mr. Takahashi available? I'd like to confirm the review result for room 201 of 富士建LKビル.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">かしこまりました、少々お待ちください。お待たせしました、審査おりました、入居開始日を教えてください。</div>
+        <div class="d-vn">Tôi hiểu rồi, bạn đợi 1 chút nhé. Xin lỗi đã để bạn đợi lâu, hồ sơ xét duyệt đã đỗ, bạn hãy cho tôi biết ngày khách muốn bắt đầu vào ở để tôi tính tiền hợp đồng.</div>
+        <div class="d-en">Understood, please hold on. Sorry for the wait. The application passed. Please tell us the desired move-in date so we can calculate the contract amount.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">ありがとうございます、入居開始日は申込書通りにお願いします。</div>
+        <div class="d-vn">Cảm ơn bạn, ngày bắt đầu ở sẽ giống như trong mẫu đơn đã điền.</div>
+        <div class="d-en">Thank you. The move-in date will be as written on the application form.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">かしこまりました、これから契約金請求書を送りますので、宜しくお願い致します。契約金をお支払いしてから契約書を準備します。</div>
+        <div class="d-vn">Tôi hiểu rồi, vậy xong tôi sẽ gửi bạn hoá đơn tiền đầu vào, rất mong bạn giúp đỡ. Sau khi thanh toán tiền đầu vào xong chúng tôi sẽ bắt đầu chuẩn bị hợp đồng.</div>
+        <div class="d-en">Understood. We will send you the invoice for the initial payment. After payment is confirmed, we will prepare the contract.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">かしこまりました、契約はどこでやりますか？弊社ですか、また御社ですか？</div>
+        <div class="d-vn">Tôi hiểu rồi, cho tôi hỏi ký hợp đồng thì ký ở đâu ạ. Ký bên công ty tôi hay ký bên công ty bạn?</div>
+        <div class="d-en">Understood. Where will the contract be signed? At our company or at yours?</div>
+      </div>
+    </div>
+
+    <!-- Dialog 9: Báo chuyển tiền -->
+    <div style="margin-bottom:10px">
+      <div style="font-size:11.5px;font-weight:500;color:#0C447C;margin-bottom:5px">9. Gọi thông báo đã chuyển tiền đầu vào · Notifying Initial Payment Transfer · 初期費用振込完了の連絡</div>
+      <div class="dialog-box">
+        <div class="speaker sp-nason">株式会社ネイソンホーム 社員:</div>
+        <div class="d-jp">富士建LKビルの201号室なんですが、契約金を振込しましたので、ご確認お願い致します。</div>
+        <div class="d-vn">Về căn nhà 富士建LKビル phòng 201, chúng tôi đã chuyển tiền đầu vào, nhờ bạn kiểm tra giúp.</div>
+        <div class="d-en">Regarding room 201 at 富士建LKビル, we have transferred the initial payment. Please confirm receipt.</div>
+      </div>
+      <div class="dialog-box">
+        <div class="speaker sp-kanri">管理会社:</div>
+        <div class="d-jp">かしこまりました、ありがとうございます、これから契約書を準備し、6月30日約に送りますので、宜しくお願い致します。</div>
+        <div class="d-vn">Tôi hiểu rồi, tôi cảm ơn bạn, bây giờ chúng tôi sẽ chuẩn bị hợp đồng và vào khoảng ngày 30 tháng 6 chúng tôi sẽ bắt đầu gửi hợp đồng cho bạn.</div>
+        <div class="d-en">Understood, thank you. We will now prepare the contract and send it to you around June 30th.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ D. CÁC CÂU HỎI KHI ĐÀM PHÁN ══ -->
+<div class="section s-amber">
+  <div class="sec-hdr">D. CÁC CÂU HỎI ĐÀM PHÁN VỚI QUẢN LÝ NHÀ · Key Negotiation Questions · 管理会社との交渉質問</div>
+  <div class="sec-body">
+    <div class="row">
+      <div class="col">
+        <div class="col-title">Về người liên lạc khẩn cấp · Emergency Contact · 緊急連絡先</div>
+        <div class="item">
+          <div class="vn">Người liên lạc khẩn cấp có bắt buộc phải là người Nhật không?</div>
+          <div class="en">Does the emergency contact have to be Japanese?</div>
+          <div class="jp">緊急連絡先は必ず日本人でなければなりませんか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ はい、必要です / Vâng, cần / Yes, required</div>
+          <div class="en">→ Yes, it is required</div>
+          <div class="jp">→ はい、必要です</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ はい、必須です。必ず日本人です / Vâng bắt buộc, nhất định phải là người Nhật</div>
+          <div class="en">→ Yes, mandatory. Must be Japanese</div>
+          <div class="jp">→ はい、必須です。必ず日本人です</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ いいえ、必要ないです / Không cần ạ</div>
+          <div class="en">→ No, not required</div>
+          <div class="jp">→ いいえ、必要ありません</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ いいえ、必須ではないです / Không bắt buộc</div>
+          <div class="en">→ Not mandatory</div>
+          <div class="jp">→ いいえ、必須ではありません</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ いいえ、日本人じゃなくても大丈夫 / Không nhất định phải là người Nhật, không có vấn đề gì</div>
+          <div class="en">→ No, non-Japanese is acceptable</div>
+          <div class="jp">→ いいえ、日本人でなくても大丈夫です</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ いいえ、日本語が話せる方であれば大丈夫 / Không cần, chỉ cần người có thể nói tiếng Nhật thôi là không có vấn đề gì</div>
+          <div class="en">→ No, just someone who can speak Japanese is fine</div>
+          <div class="jp">→ いいえ、日本語が話せる方であれば大丈夫です</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">Về đổi khóa và tiền dọn dẹp · Key Change &amp; Cleaning Fee · 鍵交換・清掃費</div>
+        <div class="item">
+          <div class="vn">Việc đổi ổ khóa có bắt buộc không, hay tuỳ ý?</div>
+          <div class="en">Is key exchange mandatory or optional?</div>
+          <div class="jp">鍵交換は必須ですか、任意ですか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ 必要です / Cần thiết &nbsp;&nbsp; 必須です / Bắt buộc &nbsp;&nbsp; 任意です / Tuỳ ý</div>
+          <div class="en">→ Required / Mandatory / Optional</div>
+          <div class="jp">→ 必要です・必須です・任意です</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ 交換しなくても大丈夫 / Không cần thay cũng được</div>
+          <div class="en">→ No need to change the key</div>
+          <div class="jp">→ 交換しなくても大丈夫です</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tiền dọn dẹp thì trả trước hay sau? Khi nào phải trả?</div>
+          <div class="en">Is the cleaning fee paid before or after? When exactly?</div>
+          <div class="jp">クリーニング代は前払いですか後払いですか？いつ払うのですか？</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ Tuỳ xem trên Zumen ghi thông tin tiền dọn dẹp thanh toán khi nào — trả trước đúng không / trả sau đúng không / trả khi nào / bao nhiêu tiền</div>
+          <div class="en">→ Check the floor plan (Zumen) for when cleaning fee is due: before move-in / after move-out / when / how much</div>
+          <div class="jp">→ 図面（ズメン）でクリーニング代の支払い時期を確認：前払い・後払い・いつ・金額</div>
+        </div>
+        <div class="item">
+          <div class="vn">→ 前払いです / Trả trước &nbsp;&nbsp; 後払いです / Trả sau &nbsp;&nbsp; 退去時にお支払い / Sẽ thanh toán vào lúc ra nhà</div>
+          <div class="en">→ Paid upfront / Paid afterwards / Paid at move-out</div>
+          <div class="jp">→ 前払い / 後払い / 退去時に支払い</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ E. TỪ VỰNG BĐS ══ -->
+<div class="section s-gray">
+  <div class="sec-hdr">E. TỪ VỰNG BẤT ĐỘNG SẢN NHẬT · Japanese Real Estate Vocabulary · 不動産用語集</div>
+  <div class="sec-body">
+    <div class="row">
+      <div class="col">
+        <div class="col-title">Từ vựng cơ bản (1–30) · Basic Terms · 基本用語</div>
+        <table class="vtable">
+          <tr><th>STT</th><th class="jp-cell">日本語</th><th>Tiếng Việt</th><th>English</th></tr>
+          <tr><td>1</td><td class="jp-cell">賃貸</td><td>Tài sản cho thuê</td><td>Property for rent</td></tr>
+          <tr><td>2</td><td class="jp-cell">マンション</td><td>Nhà chung cư (dạng căn hộ đẹp)</td><td>Apartment (quality)</td></tr>
+          <tr><td>3</td><td class="jp-cell">アパート</td><td>Nhà ở (dạng căn hộ thường)</td><td>Regular apartment</td></tr>
+          <tr><td>4</td><td class="jp-cell">管理会社</td><td>Công ty quản lý nhà</td><td>Property management company</td></tr>
+          <tr><td>5</td><td class="jp-cell">仲介業者</td><td>Công ty môi giới</td><td>Real estate agency/broker</td></tr>
+          <tr><td>6</td><td class="jp-cell">保証会社</td><td>Công ty bảo lãnh</td><td>Guarantee company</td></tr>
+          <tr><td>7</td><td class="jp-cell">火災保険</td><td>Bảo hiểm cháy nổ</td><td>Fire insurance</td></tr>
+          <tr><td>8</td><td class="jp-cell">家財保険</td><td>Bảo hiểm đồ đạc</td><td>Contents/household insurance</td></tr>
+          <tr><td>9</td><td class="jp-cell">敷金</td><td>Tiền cọc</td><td>Security deposit</td></tr>
+          <tr><td>10</td><td class="jp-cell">礼金</td><td>Tiền lễ (không được hoàn trả)</td><td>Key money (non-refundable)</td></tr>
+          <tr><td>11</td><td class="jp-cell">保証金</td><td>Tiền bảo đảm</td><td>Guarantee deposit</td></tr>
+          <tr><td>12</td><td class="jp-cell">保証料</td><td>Phí bảo lãnh</td><td>Guarantee fee</td></tr>
+          <tr><td>13</td><td class="jp-cell">共益費</td><td>Chi phí chung</td><td>Common area maintenance fee</td></tr>
+          <tr><td>14</td><td class="jp-cell">管理費</td><td>Phí quản lý</td><td>Management fee</td></tr>
+          <tr><td>15</td><td class="jp-cell">鍵交換費用</td><td>Phí thay chìa khoá</td><td>Key exchange fee</td></tr>
+          <tr><td>16</td><td class="jp-cell">清掃費</td><td>Phí dọn dẹp</td><td>Cleaning fee</td></tr>
+          <tr><td>17</td><td class="jp-cell">緊急連絡先</td><td>Địa chỉ liên lạc khẩn cấp</td><td>Emergency contact</td></tr>
+          <tr><td>18</td><td class="jp-cell">保証人</td><td>Người bảo lãnh</td><td>Guarantor</td></tr>
+          <tr><td>19</td><td class="jp-cell">設備</td><td>Thiết bị, trang bị</td><td>Equipment/facilities</td></tr>
+          <tr><td>20</td><td class="jp-cell">築者</td><td>Nhân xét</td><td>Builder/constructor</td></tr>
+        </table>
+      </div>
+      <div class="col">
+        <div class="col-title">Từ vựng nâng cao (21–60) · Advanced Terms · 応用用語</div>
+        <table class="vtable">
+          <tr><th>STT</th><th class="jp-cell">日本語</th><th>Tiếng Việt</th><th>English</th></tr>
+          <tr><td>21</td><td class="jp-cell">契約者</td><td>Người thuê nhà</td><td>Contract holder/tenant</td></tr>
+          <tr><td>22</td><td class="jp-cell">申込者</td><td>Người đang ký</td><td>Applicant</td></tr>
+          <tr><td>23</td><td class="jp-cell">入居者</td><td>Người vào ở</td><td>Resident/occupant</td></tr>
+          <tr><td>24</td><td class="jp-cell">合計</td><td>Tổng</td><td>Total</td></tr>
+          <tr><td>25</td><td class="jp-cell">日割り</td><td>Tỷ lệ hằng ngày</td><td>Daily proration</td></tr>
+          <tr><td>26</td><td class="jp-cell">駐車場</td><td>Bãi đậu xe</td><td>Parking lot</td></tr>
+          <tr><td>27</td><td class="jp-cell">駐輪場</td><td>Bãi đậu xe đạp</td><td>Bicycle parking</td></tr>
+          <tr><td>28</td><td class="jp-cell">築年</td><td>Năm xây dựng</td><td>Year of construction</td></tr>
+          <tr><td>29</td><td class="jp-cell">入居可能日</td><td>Ngày có thể vào ở được</td><td>Available move-in date</td></tr>
+          <tr><td>30</td><td class="jp-cell">契約期間</td><td>Thời hạn hợp đồng</td><td>Contract period</td></tr>
+          <tr><td>31</td><td class="jp-cell">更新料</td><td>Phí đổi mới hợp đồng</td><td>Renewal fee</td></tr>
+          <tr><td>32</td><td class="jp-cell">掃除</td><td>Dọn dẹp</td><td>Cleaning</td></tr>
+          <tr><td>33</td><td class="jp-cell">クリーニング</td><td>Làm sạch</td><td>Professional cleaning</td></tr>
+          <tr><td>34</td><td class="jp-cell">契約する</td><td>Ký hợp đồng</td><td>To sign a contract</td></tr>
+          <tr><td>35</td><td class="jp-cell">解約する</td><td>Hủy hợp đồng</td><td>To cancel a contract</td></tr>
+          <tr><td>36</td><td class="jp-cell">違約金</td><td>Tiền vi phạm hợp đồng</td><td>Penalty/breach fee</td></tr>
+          <tr><td>37</td><td class="jp-cell">短期解約</td><td>Hủy hợp đồng ngắn hạn</td><td>Early termination</td></tr>
+          <tr><td>38</td><td class="jp-cell">申込書</td><td>Đơn đăng ký</td><td>Application form</td></tr>
+          <tr><td>39</td><td class="jp-cell">契約書</td><td>Bản hợp đồng</td><td>Contract document</td></tr>
+          <tr><td>40</td><td class="jp-cell">鍵預かり証</td><td>Giấy tờ gửi chìa khoá</td><td>Key deposit receipt</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <div class="col">
+        <div class="col-title">Từ vựng phòng &amp; tiện ích (61–120) · Room &amp; Utility Terms · 部屋・設備用語</div>
+        <table class="vtable">
+          <tr><th>STT</th><th class="jp-cell">日本語</th><th>Tiếng Việt</th><th>English</th></tr>
+          <tr><td>61</td><td class="jp-cell">図面</td><td>Bản vẽ mặt bằng</td><td>Floor plan</td></tr>
+          <tr><td>62</td><td class="jp-cell">洋室</td><td>Phòng kiểu phương tây</td><td>Western-style room</td></tr>
+          <tr><td>63</td><td class="jp-cell">和室</td><td>Phòng kiểu Nhật (tatami)</td><td>Japanese-style room (tatami)</td></tr>
+          <tr><td>64</td><td class="jp-cell">収納</td><td>Lưu trữ đồ đạc</td><td>Storage space</td></tr>
+          <tr><td>65</td><td class="jp-cell">バルコニー</td><td>Ban công</td><td>Balcony</td></tr>
+          <tr><td>66</td><td class="jp-cell">ベランダ</td><td>Ban công (nhỏ hơn)</td><td>Veranda</td></tr>
+          <tr><td>67</td><td class="jp-cell">クロゼット</td><td>Tường</td><td>Closet</td></tr>
+          <tr><td>68</td><td class="jp-cell">カーテン</td><td>Tấm mền</td><td>Curtain</td></tr>
+          <tr><td>69</td><td class="jp-cell">簡取り</td><td>Sơ đồ bố trí phòng</td><td>Room layout/floor plan</td></tr>
+          <tr><td>70</td><td class="jp-cell">都市ガス</td><td>Khí gas thành phố</td><td>City gas</td></tr>
+          <tr><td>71</td><td class="jp-cell">プロパンガス</td><td>Bình gas (gas LPG)</td><td>Propane/LPG gas</td></tr>
+          <tr><td>92</td><td class="jp-cell">フリーレント</td><td>Miễn phí tiền thuê nhà</td><td>Free rent period</td></tr>
+          <tr><td>93</td><td class="jp-cell">エアコン</td><td>Máy lạnh / điều hòa không khí</td><td>Air conditioner</td></tr>
+          <tr><td>100</td><td class="jp-cell">空き家</td><td>Nhà trống</td><td>Vacant property</td></tr>
+          <tr><td>101</td><td class="jp-cell">キッチン</td><td>Nhà bếp</td><td>Kitchen</td></tr>
+          <tr><td>102</td><td class="jp-cell">給湯器</td><td>Máy đun nước nóng</td><td>Water heater</td></tr>
+          <tr><td>106</td><td class="jp-cell">シャワー</td><td>Vòi hoa sen</td><td>Shower</td></tr>
+          <tr><td>107</td><td class="jp-cell">洗面台</td><td>Bồn rửa mặt</td><td>Washbasin/sink</td></tr>
+          <tr><td>113</td><td class="jp-cell">電気が止まる</td><td>Điện bị ngừng</td><td>Electricity cut off</td></tr>
+          <tr><td>120</td><td class="jp-cell">最低</td><td>Thấp nhất</td><td>Minimum/lowest</td></tr>
+        </table>
+      </div>
+      <div class="col">
+        <div class="col-title">Từ vựng giao dịch (41–60, 80–91) · Transaction Terms · 取引用語</div>
+        <table class="vtable">
+          <tr><th>STT</th><th class="jp-cell">日本語</th><th>Tiếng Việt</th><th>English</th></tr>
+          <tr><td>41</td><td class="jp-cell">担当者</td><td>Người phụ trách</td><td>Person in charge</td></tr>
+          <tr><td>42</td><td class="jp-cell">勤務先</td><td>Nơi làm việc</td><td>Workplace</td></tr>
+          <tr><td>43</td><td class="jp-cell">業種</td><td>Ngành nghề</td><td>Industry/type of business</td></tr>
+          <tr><td>44</td><td class="jp-cell">月収</td><td>Lương tháng</td><td>Monthly income</td></tr>
+          <tr><td>45</td><td class="jp-cell">年収</td><td>Lương năm</td><td>Annual income</td></tr>
+          <tr><td>47</td><td class="jp-cell">住民票</td><td>Giấy đăng ký hộ khẩu</td><td>Residence certificate</td></tr>
+          <tr><td>48</td><td class="jp-cell">身分証</td><td>Chứng minh nhân dân</td><td>ID/identification</td></tr>
+          <tr><td>49</td><td class="jp-cell">転居理由</td><td>Lý do chuyển nhà</td><td>Reason for moving</td></tr>
+          <tr><td>50</td><td class="jp-cell">署名</td><td>Chữ ký</td><td>Signature</td></tr>
+          <tr><td>51</td><td class="jp-cell">氏名</td><td>Họ tên</td><td>Full name</td></tr>
+          <tr><td>53</td><td class="jp-cell">仕分け</td><td>Phân loại</td><td>Sorting/classification</td></tr>
+          <tr><td>55</td><td class="jp-cell">個人</td><td>Cá nhân</td><td>Individual/personal</td></tr>
+          <tr><td>56</td><td class="jp-cell">法人</td><td>Pháp nhân / công ty</td><td>Corporate/legal entity</td></tr>
+          <tr><td>57</td><td class="jp-cell">住居用</td><td>Dùng để ở</td><td>For residential use</td></tr>
+          <tr><td>59</td><td class="jp-cell">入居希望日</td><td>Ngày mong muốn vào ở</td><td>Desired move-in date</td></tr>
+          <tr><td>80</td><td class="jp-cell">家賃</td><td>Tiền nhà</td><td>Rent</td></tr>
+          <tr><td>81</td><td class="jp-cell">自動振替</td><td>Tự động chuyển tiền</td><td>Automatic bank transfer</td></tr>
+          <tr><td>82</td><td class="jp-cell">仲介手数料</td><td>Phí mua giới</td><td>Brokerage/agency fee</td></tr>
+          <tr><td>83</td><td class="jp-cell">広告料</td><td>Phí quảng cáo</td><td>Advertising fee</td></tr>
+          <tr><td>85</td><td class="jp-cell">紹介</td><td>Mới giới</td><td>Introduction/referral</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ F. HỢP ĐỒNG MẪU ══ -->
+<div class="section s-green">
+  <div class="sec-hdr">F. BIÊN BẢN ĐẶT CỌC (申込金について) · Application Deposit Agreement · 申込金に関する覚書</div>
+  <div class="sec-body">
+    <div class="row">
+      <div class="col">
+        <div class="col-title">Nội dung biên bản · Agreement Content · 覚書内容</div>
+        <div class="item">
+          <div class="vn">Giữa 株式会社ネイソンホーム ("A") và khách hàng ("B") — Đây là biên bản đặt cọc theo các điều khoản sau</div>
+          <div class="en">Between 株式会社ネイソンホーム ("A") and the client ("B") — This is a deposit agreement per the following terms</div>
+          <div class="jp">株式会社ネイソンホーム（以下「A」）と顧客（以下「B」）との間で、以下の通り申込金について合意する</div>
+        </div>
+        <div class="item">
+          <div class="vn">第1条: "B" đồng ý đăng ký thuê nhà theo đơn đăng ký thuê nhà dưới đây</div>
+          <div class="en">Article 1: "B" agreed to make an application for the following property</div>
+          <div class="jp">第1条：「B」は以下の物件について申込することに合意した</div>
+        </div>
+        <div class="item">
+          <div class="vn">第2条: "B" đồng ý đặt cọc tiền đặt cọc cho nhà thuê sau đây</div>
+          <div class="en">Article 2: "B" agreed to deposit an application fee for the following property</div>
+          <div class="jp">第2条：「B」は以下の物件に対して申込金を預けることに合意した</div>
+        </div>
+        <div class="item">
+          <div class="vn">第3条: Sẽ hoàn lại tiền đặt cọc nếu hồ sơ không được duyệt</div>
+          <div class="en">Article 3: The deposit will be refunded if the application fails to pass review</div>
+          <div class="jp">第3条：審査が通らなかった場合は申込金を返金する</div>
+        </div>
+        <div class="item">
+          <div class="vn">第4条: Nếu "A" hủy do lý do khác (Điều 3), sẽ hoàn trả tiền cọc</div>
+          <div class="en">Article 4: If "A" cancels for reasons other than Article 3, the deposit will be refunded</div>
+          <div class="jp">第4条：第3条以外の理由で「A」がキャンセルした場合は申込金を返金する</div>
+        </div>
+        <div class="item">
+          <div class="vn">第5条: Nếu "B" hủy vì lý do bất kỳ ngoài Điều 4, tiền cọc sẽ không được hoàn, được coi là phí dịch vụ tư vấn bất động sản</div>
+          <div class="en">Article 5: If "B" cancels for reasons other than Article 4, the deposit shall not be refunded and is treated as a real estate consulting service fee</div>
+          <div class="jp">第5条：第4条以外の理由で「B」がキャンセルした場合、申込金は返金されず、不動産仲介業務費として「A」が受領する</div>
+        </div>
+        <div class="item">
+          <div class="vn">第6条: "B" đã hoàn toàn hiểu và đồng ý với nội dung biên bản trên</div>
+          <div class="en">Article 6: "B" understands and agrees to all the above contents completely</div>
+          <div class="jp">第6条：「B」は上記内容を完全に理解し、申込することに合意した</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="col-title">Mẫu phòng tham khảo · Sample Property · 参考物件情報</div>
+        <div class="item">
+          <div class="vn">Tòa nhà: La Provence du KITASENJU 101</div>
+          <div class="en">Building: La Provence du KITASENJU Room 101</div>
+          <div class="jp">物件名：La Provence du KITASENJU 101号室</div>
+        </div>
+        <div class="item">
+          <div class="vn">Giá thuê: 55,000円/tháng</div>
+          <div class="en">Rent: ¥55,000/month</div>
+          <div class="jp">賃料：55,000円/月</div>
+        </div>
+        <div class="item">
+          <div class="vn">Dạng phòng: 1R (1 phòng không ngăn cách)</div>
+          <div class="en">Room type: 1R (single room, no separation)</div>
+          <div class="jp">間取り：1R</div>
+        </div>
+        <div class="item">
+          <div class="vn">Diện tích: 13.22m²</div>
+          <div class="en">Floor area: 13.22m²</div>
+          <div class="jp">専有面積：13.22m²</div>
+        </div>
+        <div class="item">
+          <div class="vn">Phí cty bảo lãnh: 0円 (phía MUSASHI chịu); Phí bảo hiểm cháy nổ: 5,000円</div>
+          <div class="en">Guarantee company fee: ¥0 (covered by MUSASHI); Fire insurance: ¥5,000</div>
+          <div class="jp">保証会社費：0円（ムサシ負担）; 火災保険：5,000円</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tháng miễn phí: 1 tháng (1ヶ月フリーレント); Phí hoa hồng nhà trả (AD): 55,000円</div>
+          <div class="en">Free rent: 1 month; Advertising fee (AD) from owner: ¥55,000</div>
+          <div class="jp">フリーレント：1ヶ月; AD（広告料）：55,000円</div>
+        </div>
+        <div class="item">
+          <div class="vn">Thông tin chi tiết thêm: xem trên phần mềm MUSASHI (Mã số 8655番号)</div>
+          <div class="en">For details: see MUSASHI software (Property No. 8655)</div>
+          <div class="jp">詳細：ムサシシステムの物件番号8655を参照</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LEGEND -->
+<div class="nsh-footer">
+  <div class="nsh-tiles">
+    <div class="nsh-tile tile-n" style="width:26px;height:26px;font-size:13px">n</div>
+    <div class="nsh-tile tile-s" style="width:26px;height:26px;font-size:13px">s</div>
+    <div class="nsh-tile tile-h" style="width:26px;height:26px;font-size:13px">h</div>
+  </div>
+  <div>
+    <div style="font-size:12.5px;font-weight:700;color:#00BFFF">株式会社ネイソンホーム</div>
+    <div style="font-size:10px;color:#1B2A9E;font-weight:500">XÂY GIÁ TRỊ _ TẠO NIỀM TIN &nbsp;·&nbsp; Building Value, Creating Trust &nbsp;·&nbsp; 価値を築く、信頼を創る</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span><strong>VN</strong> Tiếng Việt</span>
+  <span><strong>EN</strong> English</span>
+  <span style="color:#3C3489"><strong>JP</strong> 日本語</span>
+  <span>株式会社ネイソンホーム — Tài liệu nội bộ</span>
+</div>
+
+</div>
