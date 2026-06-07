@@ -1,0 +1,762 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.w{width:100%;font-size:12.5px;line-height:1.6;color:var(--color-text-primary)}
+.hdr{background:#0F6E56;border-radius:10px;padding:14px 20px;text-align:center;margin-bottom:12px}
+.hdr-t{font-size:15px;font-weight:500;color:#fff;margin-bottom:3px}
+.hdr-s{font-size:11.5px;color:#9FE1CB}
+.phase{border-radius:9px;margin-bottom:14px;overflow:hidden;border:0.5px solid}
+.ph-hdr{padding:10px 16px;font-size:13px;font-weight:500;color:#fff}
+.ph-body{padding:10px 12px}
+.row{display:flex;gap:8px;margin-bottom:8px;flex-wrap:nowrap}
+.row:last-child{margin-bottom:0}
+.col{flex:1;border-radius:7px;padding:9px 11px;min-width:0;border:0.5px solid rgba(0,0,0,0.1)}
+.sec-lbl{font-size:11px;font-weight:500;margin-bottom:6px;padding-bottom:4px;border-bottom:0.5px solid rgba(0,0,0,0.1)}
+.item{margin-bottom:6px;padding-bottom:6px;border-bottom:0.5px solid rgba(0,0,0,0.07)}
+.item:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.vn{font-size:12px;font-weight:500;margin-bottom:1px}
+.en{font-size:11.5px;font-style:italic;margin-bottom:1px;opacity:.75}
+.jp{font-size:11.5px;color:#3C3489}
+.day-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-top:8px}
+.day-box{border-radius:6px;padding:7px 5px;border:0.5px solid rgba(0,0,0,0.1)}
+.day-num{font-size:10.5px;font-weight:500;margin-bottom:4px;text-align:center}
+.day-task{font-size:10px;line-height:1.5}
+.tag{display:inline-block;font-size:10px;padding:1px 6px;border-radius:4px;margin:1px 1px 1px 0;font-weight:500}
+.goal-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.goal{flex:1;min-width:140px;border-radius:7px;padding:8px 10px;border:0.5px solid rgba(0,0,0,0.1)}
+.goal-num{font-size:18px;font-weight:500;margin-bottom:2px}
+.goal-lbl{font-size:11px;opacity:.7}
+.sys-row{display:flex;gap:6px;margin-top:8px}
+.sys-box{flex:1;border-radius:7px;padding:8px 10px;border:0.5px solid rgba(0,0,0,0.1)}
+.sys-title{font-size:11.5px;font-weight:500;margin-bottom:5px}
+.sys-item{font-size:11px;padding:2px 0;border-bottom:0.5px solid rgba(0,0,0,0.06)}
+.sys-item:last-child{border-bottom:none}
+.divider{height:0.5px;background:rgba(0,0,0,0.08);margin:8px 0}
+.legend{display:flex;justify-content:center;gap:20px;margin-top:10px;font-size:11px;color:var(--color-text-secondary)}
+/* phase colours */
+.p1{border-color:#0F6E56}.p1 .ph-hdr{background:#0F6E56}.p1 .ph-body{background:#E1F5EE}
+.p1 .col{background:#fff}.p1 .sec-lbl{color:#085041}.p1 .vn{color:#085041}.p1 .jp{color:#085041}
+.p1 .day-box{background:#fff}.p1 .day-num{color:#0F6E56}.p1 .tag{background:#9FE1CB;color:#04342C}
+.p1 .goal{background:#fff}.p1 .goal-num{color:#0F6E56}.p1 .sys-box{background:#fff}.p1 .sys-title{color:#085041}
+.p2{border-color:#534AB7}.p2 .ph-hdr{background:#534AB7}.p2 .ph-body{background:#EEEDFE}
+.p2 .col{background:#fff}.p2 .sec-lbl{color:#3C3489}.p2 .vn{color:#3C3489}.p2 .jp{color:#3C3489}
+.p2 .day-box{background:#fff}.p2 .day-num{color:#534AB7}.p2 .tag{background:#CECBF6;color:#26215C}
+.p2 .goal{background:#fff}.p2 .goal-num{color:#534AB7}.p2 .sys-box{background:#fff}.p2 .sys-title{color:#3C3489}
+.p3{border-color:#993C1D}.p3 .ph-hdr{background:#993C1D}.p3 .ph-body{background:#FAECE7}
+.p3 .col{background:#fff}.p3 .sec-lbl{color:#712B13}.p3 .vn{color:#712B13}.p3 .jp{color:#712B13}
+.p3 .day-box{background:#fff}.p3 .day-num{color:#993C1D}.p3 .tag{background:#F5C4B3;color:#4A1B0C}
+.p3 .goal{background:#fff}.p3 .goal-num{color:#993C1D}.p3 .sys-box{background:#fff}.p3 .sys-title{color:#712B13}
+.pteam{border-color:#854F0B}.pteam .ph-hdr{background:#854F0B}.pteam .ph-body{background:#FAEEDA}
+.pteam .col{background:#fff}.pteam .sec-lbl{color:#633806}.pteam .vn{color:#633806}.pteam .jp{color:#633806}
+.ptool{border-color:#185FA5}.ptool .ph-hdr{background:#185FA5}.ptool .ph-body{background:#E6F1FB}
+.ptool .col{background:#fff}.ptool .sec-lbl{color:#0C447C}.ptool .vn{color:#0C447C}.ptool .jp{color:#0C447C}
+.ptool .sys-box{background:#fff}.ptool .sys-title{color:#0C447C}.ptool .sys-item{color:#0C447C}
+.en{color:var(--color-text-secondary)}
+/* ── NSH LOGO ── */
+.nsh-logo{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:8px}
+.nsh-tiles{display:flex;gap:4px}
+.nsh-tile{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;font-style:italic;color:#fff;font-family:Georgia,serif}
+.tile-n{background:linear-gradient(135deg,#00C9A7,#0099CC)}
+.tile-s{background:linear-gradient(135deg,#FF9EC4,#FF6B9D)}
+.tile-h{background:linear-gradient(135deg,#00BFFF,#0066FF)}
+.nsh-brand{}
+.nsh-kaisha{font-size:10.5px;color:#9FE1CB;font-weight:500}
+.nsh-name{font-size:15px;font-weight:700;color:#00BFFF;letter-spacing:0.5px}
+.nsh-slogan{font-size:10px;color:rgba(255,255,255,0.75);margin-top:1px}
+</style>
+
+<div class="w">
+
+<div class="hdr">
+  <div class="nsh-logo">
+    <div class="nsh-tiles">
+      <div class="nsh-tile tile-n">n</div>
+      <div class="nsh-tile tile-s">s</div>
+      <div class="nsh-tile tile-h">h</div>
+    </div>
+    <div class="nsh-brand">
+      <div class="nsh-kaisha">株式会社</div>
+      <div class="nsh-name">NASON HOME</div>
+      <div class="nsh-slogan">XÂY GIÁ TRỊ _ TẠO NIỀM TIN</div>
+    </div>
+  </div>
+  <div class="hdr-t">KẾ HOẠCH ĐÀO TẠO SALE BĐS — 3 THÁNG TOÀN DIỆN</div>
+  <div class="hdr-s">Full Real Estate Sales Training Plan · 不動産営業 3ヶ月研修計画</div>
+  <div class="hdr-s" style="margin-top:2px">NASON HOME 株式会社 — Tài liệu nội bộ</div>
+</div>
+
+<!-- ══ VĂN HÓA SALE BĐS ══ -->
+<div class="phase" style="border-color:#1B2A9E">
+  <div class="ph-hdr" style="background:linear-gradient(135deg,#1B2A9E,#185FA5)">ĐÀO TẠO ĐỘI SALE MẠNH – KỶ LUẬT – CHUYÊN NGHIỆP &nbsp;·&nbsp; Strong, Disciplined, Professional Sales Team &nbsp;·&nbsp; 強くて規律正しいプロの営業チーム育成</div>
+  <div class="ph-body" style="background:#E6F1FB">
+
+    <div class="row">
+      <!-- I. Văn hóa sale -->
+      <div class="col" style="background:#fff">
+        <div class="sec-lbl" style="color:#0C447C">I. VĂN HÓA SALE BẤT ĐỘNG SẢN · Sales Culture · 営業マインドセット</div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">1. Tư duy tự kinh doanh</div>
+          <div class="en">Entrepreneurial mindset</div>
+          <div class="jp">自営業のマインドセット</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Làm việc như đang tự làm cho chính mình</div>
+          <div class="en">Work as if you're running your own business</div>
+          <div class="jp">自分の仕事のつもりで働く</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Tự chịu trách nhiệm, không đổ lỗi</div>
+          <div class="en">Take full responsibility, never blame others</div>
+          <div class="jp">自己責任を持ち、人のせいにしない</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">2. Giao tiếp chuẩn · Communication Standard · コミュニケーション基準</div>
+          <div class="en">Listen 70%, speak 30% — always propose clear solutions</div>
+          <div class="jp">聞く70%・話す30%、常に明確な解決策を提案する</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">3. Xây dựng hình ảnh cá nhân · Personal Brand · 個人ブランド構築</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Mạng xã hội: đăng bài đều, chuyên nghiệp</div>
+          <div class="en">SNS: post consistently and professionally</div>
+          <div class="jp">SNS：定期的にプロらしい投稿をする</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Trong công ty: tôn trọng kỷ luật, chủ động hỗ trợ</div>
+          <div class="en">In company: respect discipline, proactively support</div>
+          <div class="jp">社内：規律を守り、積極的にサポートする</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Với khách hàng: lịch sự, uy tín, nhất quán</div>
+          <div class="en">With clients: polite, trustworthy, consistent</div>
+          <div class="jp">顧客に対して：礼儀正しく、信頼でき、一貫している</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">4. Đặt mục tiêu rõ ràng · Clear Goals · 明確な目標設定</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Ngắn hạn: tuần / tháng &nbsp;·&nbsp; Dài hạn: 6 tháng – 1 năm</div>
+          <div class="en">Short-term: weekly/monthly · Long-term: 6 months – 1 year</div>
+          <div class="jp">短期：週次・月次 / 長期：6ヶ月〜1年</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Viết mục tiêu ra giấy, báo cáo trực tiếp</div>
+          <div class="en">Write goals on paper, report directly to leader</div>
+          <div class="jp">目標を紙に書き、リーダーへ直接報告する</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">5. Chủ động tuyệt đối · Absolute Proactivity · 完全な主体性</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Không chờ ai nhắc — tự tìm khách – tự xin nhà – tự follow</div>
+          <div class="en">Don't wait to be told — find clients, request properties, follow up yourself</div>
+          <div class="jp">言われるのを待たない。自ら顧客を探し、物件を依頼し、フォローする</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">6. Ưu tiên việc nhỏ · Prioritize Small Tasks · 小さな仕事を優先</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">• Việc 5 phút làm ngay — không trì hoãn, không để tồn đọng</div>
+          <div class="en">Do 5-minute tasks immediately — no delays, no backlog</div>
+          <div class="jp">5分でできることはすぐやる。先延ばし・積み残しなし</div>
+        </div>
+      </div>
+
+      <!-- II. Quy trình & kiến thức -->
+      <div class="col" style="background:#fff">
+        <div class="sec-lbl" style="color:#0C447C">II. QUY TRÌNH & KIẾN THỨC BĐS · Process & Knowledge · 業務知識</div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">1. Quy trình thuê nhà · Rental Process · 賃貸プロセス</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#1A1A1A">① Lấy thông tin khách &nbsp;→&nbsp; ② Gửi nhà phù hợp &nbsp;→&nbsp; ③ Hẹn xem nhà &nbsp;→&nbsp; ④ Làm hồ sơ đăng ký &nbsp;→&nbsp; ⑤ Follow xét duyệt &nbsp;→&nbsp; ⑥ Ký hợp đồng &nbsp;→&nbsp; ⑦ Bàn giao nhà</div>
+          <div class="en">① Get client info → ② Send suitable properties → ③ Schedule viewing → ④ Prepare application → ⑤ Follow review → ⑥ Sign contract → ⑦ Hand over keys</div>
+          <div class="jp">①客情収集→②物件提案→③内見予約→④申込書作成→⑤審査フォロー→⑥契約締結→⑦鍵渡し</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">2. Từ vựng chuyên ngành · Key Terms · 専門用語</div>
+          <div class="en">賃料・管理費・初期費用・審査・申込・契約・引渡し・保証会社・審査内容</div>
+          <div class="jp">賃料・管理費・初期費用・審査・申込・契約・引渡し・保証会社・審査内容</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">3. Các dạng nhà tại Nhật · Property Types · 物件種別</div>
+          <div class="en">アパート・マンション・戸建て・シェアハウス・1R・1K・1DK・2LDK — know pros/cons of each</div>
+          <div class="jp">アパート・マンション・戸建て・シェアハウス・1R・1K・1DK・2LDK — 各メリット・デメリットを把握</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">4. Đánh giá khu vực · Area Assessment · エリア評価</div>
+          <div class="en">Security · distance to station · convenience stores · noise level · rental demand</div>
+          <div class="jp">治安・駅距離・コンビニ・静粛性・賃貸需要</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">5. Check nhà trên app · Property Search Apps · 物件検索アプリ</div>
+          <div class="en">スーモ・ホームズ・CHINTAI・アットホーム・ニフティ・いい部屋ネット + "hidden" properties</div>
+          <div class="jp">スーモ・ホームズ・CHINTAI・アットホーム・ニフティ・いい部屋ネット＋隠れ物件</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">6. Cách gọi cho quản lý nhà · Calling Management · 管理会社への電話</div>
+          <div class="en">Clear voice, polite tone — ask: vacancy, conditions, fees, viewing schedule, deal terms</div>
+          <div class="jp">明瞭な声・丁寧な言葉遣い。空室確認・条件・費用・内見・条件交渉を確認</div>
+        </div>
+        <div class="item">
+          <div class="vn" style="color:#0C447C">7. Xử lý トラブル · Trouble Handling · トラブル対応</div>
+          <div class="en">Dirty/broken room · client changed mind · missing documents · rejected application · communication error → Report early – resolve fast – never avoid</div>
+          <div class="jp">汚れ・故障・気変わり・書類不足・審査落ち・連絡ミス → 早期報告・迅速対応・逃げない</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- III. Marketing & chốt sale -->
+    <div class="row">
+      <div class="col" style="background:#fff">
+        <div class="sec-lbl" style="color:#0C447C">III. PHƯƠNG PHÁP MARKETING & CHỐT SALE · Marketing & Closing · 営業クロージング手法</div>
+        <div style="font-size:10.5px;font-style:italic;color:var(--color-text-secondary);margin-bottom:6px">Khi kết câu với khách luôn nói: "chốt nhé" / "xem nhà nhé" / "đăng ký nhà nhé" / "ký hợp đồng nhé"</div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">1. Đưa sự lựa chọn & so sánh — Khách luôn dễ quyết khi có 2–3 phương án rõ ràng</div><div class="en">Give 2–3 clear options to compare — clients decide easier</div><div class="jp">2〜3の明確な選択肢を提示。比較することで顧客は決断しやすくなる</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">2. Tạo sự khan hiếm — "Căn này đang có thêm 2 nhóm hỏi" / "Chủ nhà muốn chốt trong hôm nay"</div><div class="en">Create scarcity — "2 other groups are asking" / "Owner wants to close today"</div><div class="jp">希少性の演出。「他に2グループが問い合わせ中」「オーナーが今日中に決めたい」</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">3. Ngon – bổ – rẻ — Giải thích vì sao căn này đáng thuê, so sánh với căn đắt hơn để tạo ưu thế</div><div class="en">Value proposition — explain why it's worth it, compare with pricier options</div><div class="jp">価値の説明。なぜこの物件が価値あるかを説明し、高い物件と比較する</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">4. Cảm xúc & niềm tin — Khách thuê nhà = thuê sự an tâm. Nhiệt tình · có mặt khi cần · gửi thông tin rõ ràng · trả lời nhanh</div><div class="en">Emotion & trust — clients rent peace of mind. Be enthusiastic, present, clear and fast</div><div class="jp">感情と信頼。賃貸は安心を買うこと。熱心に・必要な時に対応・明確な情報・迅速な返信</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">5. Ưu đãi & quà tặng — Hỗ trợ phí / tặng vật dụng nhỏ / deal giảm giá với chủ nhà</div><div class="en">Perks & gifts — fee support, small gifts, negotiate discount with owner</div><div class="jp">特典・プレゼント。費用サポート・小物プレゼント・オーナーとの値下げ交渉</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">6. Thay đổi cách báo giá đầu vào — làm gọn bảng phí, giải thích từng phí dễ hiểu, tập trung vào tổng số tiền cần chuẩn bị</div><div class="en">Simplify cost breakdown — clean fee table, plain language explanation, focus on total amount needed</div><div class="jp">初期費用の見せ方を変える。シンプルな費用表・わかりやすい説明・必要総額に集中</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">7. Có thể không lấy 仲介料 — tùy case. AD hoặc fee từ công ty có thể bù lại</div><div class="en">May waive brokerage fee — case by case. AD or company fee can cover it</div><div class="jp">仲介手数料なしも可能。ケースによってADや会社フィーで補填</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">8. "Đắt hơn cái gì?" — So với căn gần ga / mới hơn / diện tích lớn → Giúp khách hiểu GIÁ TRỊ thật</div><div class="en">"More expensive than what?" — Compare with closer/newer/bigger → Show real VALUE</div><div class="jp">「何と比べて高い？」駅近・新築・広さで比較 → 本当の価値を理解させる</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">9. Giải quyết vấn đề cho khách — Hỗ trợ tiếng Nhật · xe đạp · đồ dùng · chuyển nhà · thủ tục → Giải quyết pain point = khách theo mình</div><div class="en">Solve client problems — Japanese support · bicycle · furniture · moving · procedures → Solve pain point = client loyalty</div><div class="jp">顧客の問題解決。日本語サポート・自転車・家具・引越し・手続き → ペインポイント解決=顧客定着</div></div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">10. Tận tâm – chu đáo – có trách nhiệm — Không để khách chờ · Không mất liên lạc · Không trả lời qua loa</div><div class="en">Dedicated, attentive, responsible — don't keep clients waiting, don't go silent, don't give vague answers</div><div class="jp">誠実・丁寧・責任感。待たせない・連絡を絶やさない・曖昧な返答をしない</div></div>
+      </div>
+
+      <!-- IV. 70/30 -->
+      <div class="col" style="background:#fff;flex:0.7">
+        <div class="sec-lbl" style="color:#0C447C">IV. SALE GIỎI TẠI NHẬT = 70% CHỦ ĐỘNG + 30% BỊ ĐỘNG · Formula for Success in Japan</div>
+        <div class="item"><div class="vn" style="color:#1A1A1A">Để có đội sale mạnh – kỷ luật – chuyên nghiệp, mỗi ngày phải:</div><div class="en">To build a strong, disciplined, professional team — every single day:</div><div class="jp">強くて規律正しいプロ営業チームのために毎日実施：</div></div>
+        <div class="item"><div class="vn" style="color:#0C447C">✔ Đăng 20–30 bài mỗi ngày</div><div class="en">Post 20–30 content pieces daily</div><div class="jp">毎日20〜30投稿</div></div>
+        <div class="item"><div class="vn" style="color:#0C447C">✔ Nhắn / gọi 20 khách mỗi ngày</div><div class="en">Message or call 20 clients daily</div><div class="jp">毎日20件の顧客へ連絡・電話</div></div>
+        <div class="item"><div class="vn" style="color:#0C447C">✔ Check app nhà 20–40 lần mỗi ngày</div><div class="en">Check property apps 20–40 times daily</div><div class="jp">毎日20〜40回アプリで物件確認</div></div>
+        <div class="item"><div class="vn" style="color:#0C447C">✔ Xin thêm nhà từ senpai mỗi ngày</div><div class="en">Request property leads from senior staff daily</div><div class="jp">毎日先輩から物件情報をもらう</div></div>
+        <div class="item"><div class="vn" style="color:#0C447C">✔ Follow hồ sơ đang chạy mỗi ngày</div><div class="en">Follow up all active applications daily</div><div class="jp">毎日申込中の案件をフォローする</div></div>
+        <div class="item" style="margin-top:6px">
+          <div style="background:#0F6E56;color:#fff;border-radius:6px;padding:8px 10px;text-align:center">
+            <div style="font-size:20px;font-weight:700;margin-bottom:2px">70%</div>
+            <div style="font-size:10.5px">CHỦ ĐỘNG · Proactive · 主体的行動</div>
+          </div>
+        </div>
+        <div class="item">
+          <div style="background:#185FA5;color:#fff;border-radius:6px;padding:8px 10px;text-align:center">
+            <div style="font-size:20px;font-weight:700;margin-bottom:2px">30%</div>
+            <div style="font-size:10.5px">BỊ ĐỘNG · Reactive · 受動的対応</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══ THÁNG 1 ══ -->
+<div class="phase p1">
+  <div class="ph-hdr">THÁNG 1 — NỀN TẢNG + THỰC CHIẾN &nbsp;·&nbsp; Month 1: Foundation &amp; Live Practice &nbsp;·&nbsp; 第1ヶ月：基礎固め＋実践</div>
+  <div class="ph-body">
+
+    <!-- Mục tiêu tháng 1 -->
+    <div class="row">
+      <div class="col">
+        <div class="sec-lbl">Mục tiêu tháng 1 · Monthly Goals · 月間目標</div>
+        <div class="item">
+          <div class="vn">Xây dựng hình ảnh cá nhân chuyên nghiệp trên mạng xã hội</div>
+          <div class="en">Build a professional personal brand on social media</div>
+          <div class="jp">SNSでプロフェッショナルな個人ブランドを構築する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Nắm vững hệ thống tìm nhà: ITANDI BB, REINS, Athome, Villa, Robot</div>
+          <div class="en">Master property search systems: ITANDI BB, REINS, Athome, Villa, Robot</div>
+          <div class="jp">物件検索システム（ITANDI BB・REINS・アットホーム・Villa・Robot）を習得する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đăng 10–20 bài/ngày, có ít nhất 1 video quay nhà, báo cáo kết quả mỗi ngày</div>
+          <div class="en">Post 10–20 content per day, produce at least 1 property video, submit daily reports</div>
+          <div class="jp">毎日10〜20投稿、物件動画1本以上、日次報告を徹底する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tiếp cận và xử lý khách hàng thật ngay từ tuần 1</div>
+          <div class="en">Start approaching and handling real clients from week 1</div>
+          <div class="jp">第1週から実際の顧客対応を開始する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Chốt tối thiểu 1 hợp đồng trong tháng 1</div>
+          <div class="en">Close at least 1 contract within month 1</div>
+          <div class="jp">第1ヶ月中に最低1件の契約を成立させる</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl">Kiến thức bắt buộc · Required Knowledge · 必須知識</div>
+        <div class="item">
+          <div class="vn">Hệ thống nhà: phân biệt nhà hệ thống vs nhà ngoài hệ thống, loại phòng, diện tích, tầng, hướng</div>
+          <div class="en">Property systems: system vs non-system properties, room types, area, floor, orientation</div>
+          <div class="jp">物件システム：システム物件vs非システム物件、間取り・面積・階・方角の区別</div>
+        </div>
+        <div class="item">
+          <div class="vn">Từ vựng BĐS tiếng Nhật cơ bản: 礼金, 敷金, 管理費, 初期費用, 空室, 申込中, 成約</div>
+          <div class="en">Basic Japanese real estate vocabulary: key money, deposit, management fee, initial costs, vacancy, application, contract</div>
+          <div class="jp">不動産基本用語：礼金・敷金・管理費・初期費用・空室・申込中・成約</div>
+        </div>
+        <div class="item">
+          <div class="vn">Cách tìm và lọc phòng trên 6 app: ITANDI BB, Musashi, REINS, Athome, Robot, Villa</div>
+          <div class="en">How to search and filter rooms on 6 apps: ITANDI BB, Musashi, REINS, Athome, Robot, Villa</div>
+          <div class="jp">6つのアプリで物件を検索・絞り込む方法を習得する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Cách gọi điện cho quản lý nhà (管理会社): hỏi trạng thái phòng, điều kiện xét duyệt khách nước ngoài</div>
+          <div class="en">How to call property management companies: check room status, foreigner application conditions</div>
+          <div class="jp">管理会社への電話対応：空室確認・外国人申込条件の確認方法</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tuần 1 ngày -->
+    <div class="sec-lbl" style="margin-top:4px">TUẦN 1 — Nền tảng · Foundation · 基礎週 (Ngày 1–7)</div>
+    <div class="day-grid">
+      <div class="day-box">
+        <div class="day-num">Ngày 1</div>
+        <div class="day-task">
+          <div class="vn">Setup avatar, bio, cover ảnh bìa chuyên nghiệp</div>
+          <div class="en">Set up professional profile</div>
+          <div class="jp">プロフィール設定</div>
+          <div style="margin-top:3px"><span class="tag">ITANDI BB</span><span class="tag">REINS</span></div>
+          <div class="vn" style="margin-top:3px">Học tổng quan 2 hệ thống chính. Từ vựng BĐS cơ bản. Đăng 10–15 bài. Tìm 10 phòng. Báo cáo cuối ngày.</div>
+          <div class="en">Learn 2 main systems. Basic vocabulary. Post 10–15. Find 10 rooms. Daily report.</div>
+          <div class="jp">主要2システム学習。基本語彙。10〜15投稿。10室検索。日報提出。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 2</div>
+        <div class="day-task">
+          <span class="tag">Athome</span><span class="tag">Robot</span>
+          <div class="vn" style="margin-top:3px">Học Athome và Robot Home. Thực hành tìm – lọc phòng. Đăng 10–20 bài. Inbox khách, phản hồi cơ bản. Tìm 20 phòng. Follow khách đầu tiên.</div>
+          <div class="en">Learn Athome &amp; Robot. Practice search/filter. Post 10–20. Inbox clients. Find 20 rooms. Follow up.</div>
+          <div class="jp">アットホーム・Robot学習。検索練習。10〜20投稿。顧客inbox。20室検索。フォロー開始。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 3</div>
+        <div class="day-task">
+          <span class="tag">+3 App mở rộng</span>
+          <div class="vn" style="margin-top:3px">Học thêm 3 app mở rộng (Musashi, Villa, app địa phương). Thực hành so sánh phòng theo tiêu chí. Đăng bài. Inbox 10–20 khách. Ghi lại phản hồi từ chối để học.</div>
+          <div class="en">Learn 3 extended apps. Compare rooms by criteria. Post. Inbox 10–20. Record rejection reasons.</div>
+          <div class="jp">拡張3アプリ学習。条件別比較。投稿。10〜20件inbox。断り理由を記録。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 4</div>
+        <div class="day-task">
+          <span class="tag">Gọi quản lý</span>
+          <div class="vn" style="margin-top:3px">Ôn từ vựng + hệ thống nhà. Tập gọi điện quản lý 管理会社 lần đầu. Đăng bài. Tìm 20–30 phòng. Gửi phòng cho khách. Follow khách cũ.</div>
+          <div class="en">Review vocabulary + systems. First calls to 管理会社. Post. Find 20–30 rooms. Send rooms to clients.</div>
+          <div class="jp">語彙・システム復習。管理会社への初電話。投稿。20〜30室検索。物件送付。フォロー。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 5</div>
+        <div class="day-task">
+          <span class="tag">Video đầu tiên</span>
+          <div class="vn" style="margin-top:3px">Quay video nhà đầu tiên (60–90 giây). Đăng video lên mạng xã hội. Inbox và xử lý khách thật. Tổng hợp lý do khách từ chối để phân tích.</div>
+          <div class="en">Shoot first property video (60–90s). Post video. Handle real clients. Analyze rejection reasons.</div>
+          <div class="jp">初の物件動画撮影（60〜90秒）。動画投稿。実際の顧客対応。断り理由の分析。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 6</div>
+        <div class="day-task">
+          <span class="tag">Ôn + Test</span>
+          <div class="vn" style="margin-top:3px">Ôn toàn bộ kiến thức tuần 1. Làm bài test kiến thức (từ vựng, hệ thống, quy trình). Đăng bài. Follow khách. Tự đánh giá điểm yếu.</div>
+          <div class="en">Review all week 1 knowledge. Take knowledge test. Post. Follow up. Self-assess weak points.</div>
+          <div class="jp">第1週知識の総復習。テスト実施。投稿。フォロー。弱点の自己評価。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 7</div>
+        <div class="day-task">
+          <span class="tag">Tổng kết</span>
+          <div class="vn" style="margin-top:3px">Tổng kết tuần 1. Báo cáo kết quả chi tiết cho leader. Nhận feedback, điều chỉnh kế hoạch tuần 2. Đặt mục tiêu cụ thể tuần tới.</div>
+          <div class="en">Week 1 review. Detailed report to leader. Receive feedback, adjust week 2 plan. Set next week goals.</div>
+          <div class="jp">第1週総括。リーダーへ詳細報告。フィードバック受領。第2週計画調整。翌週目標設定。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tuần 2 ngày -->
+    <div class="sec-lbl" style="margin-top:10px">TUẦN 2 — Thực chiến & Chốt deal · Live Practice &amp; Closing · 実践強化・成約 (Ngày 8–14)</div>
+    <div class="day-grid">
+      <div class="day-box">
+        <div class="day-num">Ngày 8</div>
+        <div class="day-task">
+          <div class="vn">Tối ưu bài đăng hút khách (caption, hashtag, hình ảnh). Inbox &amp; follow khách cũ. Gọi check phòng 3–5 cuộc. Gửi phòng cho khách mỗi ngày.</div>
+          <div class="en">Optimize posts (caption, hashtag, images). Inbox &amp; follow old clients. Call to check 3–5 rooms. Send rooms daily.</div>
+          <div class="jp">投稿最適化（キャプション・ハッシュタグ・画像）。既存顧客フォロー。3〜5件物件確認電話。毎日物件送付。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 9</div>
+        <div class="day-task">
+          <div class="vn">Tư vấn khách thật theo quy trình 7 bước. Chuẩn bị lịch đi xem nhà. Follow hot lead (khách có nhu cầu gấp).</div>
+          <div class="en">Consult real clients using 7-step process. Schedule property viewings. Follow hot leads urgently.</div>
+          <div class="jp">7ステップで実際の顧客相談。内見スケジュール作成。ホットリードへの緊急フォロー。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 10</div>
+        <div class="day-task">
+          <div class="vn">Đi xem nhà cùng khách (nếu có lịch). Học xử lý từ chối thực tế: "đắt quá", "suy nghĩ thêm", "xa ga". Đăng bài + video. Check phòng liên tục.</div>
+          <div class="en">Property viewing with client. Learn objection handling: "too expensive", "need to think", "far from station". Post + video. Check rooms continuously.</div>
+          <div class="jp">顧客と内見（予定があれば）。反論処理学習：「高すぎる」「考えます」「駅遠」。投稿＋動画。継続的に物件確認。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 11</div>
+        <div class="day-task">
+          <div class="vn">Tập trung vào khách có nhu cầu cao. Gọi quản lý confirm điều kiện xét duyệt người nước ngoài. Chuẩn bị hồ sơ khách (giấy tờ, lý lịch, bảo lãnh).</div>
+          <div class="en">Focus on high-intent clients. Call management to confirm foreigner approval conditions. Prepare client application documents.</div>
+          <div class="jp">高意欲顧客に集中。管理会社に外国人審査条件を確認。申込書類の準備。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 12</div>
+        <div class="day-task">
+          <div class="vn">Chốt deal đầu tiên — hỗ trợ hoàn thiện hồ sơ, thủ tục ký hợp đồng. Follow sát khách đang trong quá trình xét duyệt hồ sơ.</div>
+          <div class="en">Close first deal — assist with documents, contract signing process. Closely follow clients in review process.</div>
+          <div class="jp">初成約—書類完成・契約サポート。審査中の顧客を密にフォロー。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 13</div>
+        <div class="day-task">
+          <div class="vn">Tiếp tục chốt / backup khách khác. Rút kinh nghiệm xử lý từ chối. Đăng bài. Mở rộng tệp khách mới.</div>
+          <div class="en">Continue closing / backup other clients. Review objection handling. Post. Expand new client base.</div>
+          <div class="jp">成約継続・バックアップ顧客対応。反論処理の振り返り。投稿。新規顧客拡大。</div>
+        </div>
+      </div>
+      <div class="day-box">
+        <div class="day-num">Ngày 14</div>
+        <div class="day-task">
+          <div class="vn">Tổng kết 2 tuần đầu. Đánh giá kết quả so với mục tiêu. Đặt mục tiêu tháng tiếp theo: tối thiểu 3 hợp đồng/tháng.</div>
+          <div class="en">2-week review. Evaluate results vs. targets. Set next month goal: minimum 3 contracts/month.</div>
+          <div class="jp">2週間総括。目標対比評価。翌月目標設定：月3件以上契約。</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chỉ tiêu tháng 1 -->
+    <div class="sec-lbl" style="margin-top:10px">Chỉ tiêu tháng 1 · Month 1 KPIs · 第1ヶ月KPI</div>
+    <div class="goal-row">
+      <div class="goal"><div class="goal-num">10–20</div><div class="vn">bài đăng/ngày</div><div class="en">posts per day</div><div class="jp">1日の投稿数</div></div>
+      <div class="goal"><div class="goal-num">≥1</div><div class="vn">video nhà/tuần</div><div class="en">property video/week</div><div class="jp">物件動画/週</div></div>
+      <div class="goal"><div class="goal-num">≥2</div><div class="vn">khách đi xem nhà</div><div class="en">clients for viewing</div><div class="jp">内見顧客数</div></div>
+      <div class="goal"><div class="goal-num">≥1</div><div class="vn">hợp đồng ký kết</div><div class="en">contracts closed</div><div class="jp">成約件数</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ THÁNG 2 ══ -->
+<div class="phase p2">
+  <div class="ph-hdr">THÁNG 2 — NÂNG CẤP KỸ NĂNG + ĐẠT DOANH SỐ &nbsp;·&nbsp; Month 2: Skill Upgrade + Revenue &nbsp;·&nbsp; 第2ヶ月：スキルアップ＋売上達成</div>
+  <div class="ph-body">
+
+    <div class="row">
+      <div class="col">
+        <div class="sec-lbl">Mục tiêu tháng 2 · Month 2 Goals · 月間目標</div>
+        <div class="item">
+          <div class="vn">Chốt tối thiểu 3 hợp đồng trong tháng, doanh số đạt hoặc vượt chỉ tiêu nhóm</div>
+          <div class="en">Close at least 3 contracts this month, reach or exceed group sales target</div>
+          <div class="jp">月3件以上成約、グループ目標を達成または超過する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Thành thạo toàn bộ quy trình từ tìm khách → tư vấn → xem nhà → chốt → hồ sơ</div>
+          <div class="en">Master full process: find client → consult → view → close → documents</div>
+          <div class="jp">顧客発見→相談→内見→成約→書類の全工程を完全習得する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tự xử lý được 80% tình huống từ chối mà không cần hỏi leader</div>
+          <div class="en">Handle 80% of objections independently without asking leader</div>
+          <div class="jp">リーダーに頼らず80%の反論を自力で処理できる</div>
+        </div>
+        <div class="item">
+          <div class="vn">Xây dựng được tệp khách hàng cá nhân ổn định, có khách tái giới thiệu</div>
+          <div class="en">Build a stable personal client base with referral clients</div>
+          <div class="jp">紹介顧客を含む安定した個人顧客ベースを構築する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Bắt đầu xây dựng thương hiệu cá nhân qua video và bài viết chuyên sâu</div>
+          <div class="en">Start building personal brand through in-depth videos and content</div>
+          <div class="jp">専門的な動画・コンテンツで個人ブランドを構築し始める</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl">Kỹ năng nâng cao · Advanced Skills · 高度スキル</div>
+        <div class="item">
+          <div class="vn">Kỹ năng tư vấn sâu: khai thác nhu cầu thật, lắng nghe chủ động, đặt câu hỏi mở</div>
+          <div class="en">Deep consultation: uncover real needs, active listening, open-ended questions</div>
+          <div class="jp">深い相談スキル：真のニーズ発掘、傾聴、オープンクエスチョン</div>
+        </div>
+        <div class="item">
+          <div class="vn">Kỹ năng xử lý từ chối nâng cao: kỹ thuật "đồng ý trước, giải thích sau", tạo sự gấp gáp</div>
+          <div class="en">Advanced objection handling: "agree first, explain later" technique, create urgency</div>
+          <div class="jp">高度な反論処理：「先に同意、後に説明」テクニック、緊急性の演出</div>
+        </div>
+        <div class="item">
+          <div class="vn">Kỹ năng chốt deal: nhận biết tín hiệu mua, chốt thẳng, chốt giả định, chốt bằng câu hỏi</div>
+          <div class="en">Closing skills: recognize buying signals, direct close, assumptive close, question close</div>
+          <div class="jp">成約スキル：購入シグナル認識、直接・仮定・質問クローズ</div>
+        </div>
+        <div class="item">
+          <div class="vn">Kỹ năng làm hồ sơ thuê nhà cho người nước ngoài: giấy tờ cần thiết, bảo lãnh, ngân hàng Nhật</div>
+          <div class="en">Rental application for foreigners: required documents, guarantors, Japanese bank accounts</div>
+          <div class="jp">外国人入居申込スキル：必要書類・保証人・日本の銀行口座</div>
+        </div>
+        <div class="item">
+          <div class="vn">Marketing video nâng cao: hook 3 giây, storytelling, call-to-action rõ ràng</div>
+          <div class="en">Advanced video marketing: 3-second hook, storytelling, clear call-to-action</div>
+          <div class="jp">高度な動画マーケティング：3秒フック・ストーリーテリング・明確なCTA</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lịch tuần 3–4 -->
+    <div class="sec-lbl" style="margin-top:4px">TUẦN 3 (Ngày 15–21) · Week 3 · 第3週</div>
+    <div class="day-grid">
+      <div class="day-box"><div class="day-num">Ngày 15</div><div class="day-task"><div class="vn">Học kỹ thuật khai thác nhu cầu sâu. Roleplay tư vấn với leader. Đăng bài + gọi check phòng 5 cuộc.</div><div class="en">Deep needs exploration technique. Roleplay with leader. Post + 5 room check calls.</div><div class="jp">ニーズ深掘り学習。リーダーとロールプレイ。投稿＋5件確認電話。</div></div></div>
+      <div class="day-box"><div class="day-num">Ngày 16</div><div class="day-task"><div class="vn">Tư vấn khách thật áp dụng kỹ thuật mới. Gửi phòng phù hợp theo từng profile khách. Theo dõi phản hồi.</div><div class="en">Consult real clients with new techniques. Send rooms by client profile. Track responses.</div><div class="jp">新テクニックで実顧客相談。プロフィール別物件送付。反応追跡。</div></div></div>
+      <div class="day-box"><div class="day-num">Ngày 17</div><div class="day-task"><div class="vn">Học và thực hành xử lý từ chối cấp độ 2. Phân tích 5 tình huống từ chối thực tế đã gặp. Đề xuất giải pháp.</div><div class="en">Level 2 objection handling. Analyze 5 real rejection cases. Propose solutions.</div><div class="jp">レベル2反論処理学習。実際の断り5事例分析。解決策提案。</div></div></div>
+      <div class="day-box"><div class="day-num">Ngày 18</div><div class="day-task"><div class="vn">Đi xem nhà cùng khách. Quay video xem nhà thực tế. Học cách chốt deal ngay tại chỗ sau khi xem.</div><div class="en">Property viewing with client. Film real viewing video. Learn on-site closing after viewing.</div><div class="jp">顧客と内見。内見動画撮影。内見後の即時成約テクニック習得。</div></div></div>
+      <div class="day-box"><div class="day-num">Ngày 19</div><div class="day-task"><div class="vn">Thực hành làm hồ sơ thuê nhà hoàn chỉnh cho khách nước ngoài. Kiểm tra toàn bộ giấy tờ cần thiết.</div><div class="en">Complete rental application for a foreign client. Verify all required documents.</div><div class="jp">外国人顧客の入居申込完全作成。必要書類の全確認。</div></div></div>
+      <div class="day-box"><div class="day-num">Ngày 20</div><div class="day-task"><div class="vn">Quay video marketing nâng cao: hook 3 giây, trình bày phòng chuyên nghiệp. Tối ưu caption SEO.</div><div class="en">Shoot advanced marketing video: 3-sec hook, professional room presentation. Optimize SEO caption.</div><div class="jp">高度な動画撮影：3秒フック・プロの物件紹介。SEOキャプション最適化。</div></div></div>
+      <div class="day-box"><div class="day-num">Ngày 21</div><div class="day-task"><div class="vn">Tổng kết tuần 3. Báo cáo số hợp đồng, khách đang theo, doanh số dự kiến. Feedback từ leader.</div><div class="en">Week 3 review. Report contracts, active clients, expected revenue. Leader feedback.</div><div class="jp">第3週総括。成約数・フォロー中顧客・見込み売上を報告。フィードバック。</div></div></div>
+    </div>
+
+    <div class="sec-lbl" style="margin-top:10px">TUẦN 4 (Ngày 22–30) · Week 4 · 第4週 — Tăng tốc doanh số</div>
+    <div class="row">
+      <div class="col">
+        <div class="item">
+          <div class="vn">Ngày 22–24: Tập trung tối đa vào khách nóng (hot lead). Gọi xác nhận điều kiện quản lý nhà. Đẩy mạnh chốt deal. Hỗ trợ hồ sơ nhanh nhất có thể.</div>
+          <div class="en">Days 22–24: Maximum focus on hot leads. Call to confirm management conditions. Push closings. Fast-track document support.</div>
+          <div class="jp">22〜24日：ホットリードに最大集中。管理条件確認。成約を加速。書類を最速でサポート。</div>
+        </div>
+        <div class="item">
+          <div class="vn">Ngày 25–27: Mở rộng nguồn khách mới bằng referral (khách giới thiệu khách). Đăng nội dung chuyên sâu về BĐS Nhật Bản để tạo uy tín.</div>
+          <div class="en">Days 25–27: Expand new clients through referrals. Post in-depth Japan real estate content to build credibility.</div>
+          <div class="jp">25〜27日：紹介で新規顧客を拡大。信頼構築のため日本不動産の専門コンテンツを投稿。</div>
+        </div>
+        <div class="item">
+          <div class="vn">Ngày 28–30: Tổng kết tháng 2. Đánh giá KPI (số hợp đồng, doanh số, tỷ lệ chuyển đổi). Lập kế hoạch chi tiết cho tháng 3.</div>
+          <div class="en">Days 28–30: Month 2 review. Evaluate KPIs (contracts, revenue, conversion rate). Plan month 3 in detail.</div>
+          <div class="jp">28〜30日：第2ヶ月総括。KPI評価（成約数・売上・転換率）。第3ヶ月の詳細計画策定。</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl">Chỉ tiêu tháng 2 · Month 2 KPIs · 第2ヶ月KPI</div>
+        <div class="goal-row" style="flex-direction:column;gap:6px">
+          <div class="goal"><div class="goal-num">≥3</div><div class="vn">hợp đồng/tháng</div><div class="en">contracts/month · 成約/月</div></div>
+          <div class="goal"><div class="goal-num">≥5</div><div class="vn">khách đi xem nhà</div><div class="en">viewing clients · 内見顧客</div></div>
+          <div class="goal"><div class="goal-num">80%</div><div class="vn">tự xử lý từ chối</div><div class="en">objections handled solo · 自力反論処理</div></div>
+          <div class="goal"><div class="goal-num">≥1</div><div class="vn">khách giới thiệu</div><div class="en">referral client · 紹介顧客</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ THÁNG 3 ══ -->
+<div class="phase p3">
+  <div class="ph-hdr">THÁNG 3 — CHUYÊN GIA + DẪN DẮT NHÓM &nbsp;·&nbsp; Month 3: Expert + Team Leadership &nbsp;·&nbsp; 第3ヶ月：専門家＋チームリーダーシップ</div>
+  <div class="ph-body">
+    <div class="row">
+      <div class="col">
+        <div class="sec-lbl">Mục tiêu tháng 3 · Month 3 Goals · 月間目標</div>
+        <div class="item">
+          <div class="vn">Chốt tối thiểu 5 hợp đồng, doanh số vượt chỉ tiêu tối thiểu 20%</div>
+          <div class="en">Close at least 5 contracts, exceed minimum revenue target by 20%</div>
+          <div class="jp">月5件以上成約、最低売上目標を20%超過する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Trở thành người tư vấn được khách tin tưởng, có khách tái mua và giới thiệu thường xuyên</div>
+          <div class="en">Become a trusted advisor with repeat and referral clients regularly</div>
+          <div class="jp">信頼される相談者となり、リピート・紹介顧客を定期的に獲得する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Bắt đầu hỗ trợ và đào tạo nhân viên mới (nếu có), chia sẻ kinh nghiệm trong nhóm</div>
+          <div class="en">Begin mentoring new staff (if available), share experience within the team</div>
+          <div class="jp">新人スタッフの指導（該当者がいれば）を開始し、チーム内で経験を共有する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Xây dựng quy trình làm việc cá nhân chuẩn hóa (checklist, template, lịch tuần)</div>
+          <div class="en">Build standardized personal workflow (checklist, templates, weekly schedule)</div>
+          <div class="jp">標準化された個人ワークフロー（チェックリスト・テンプレート・週次スケジュール）を構築する</div>
+        </div>
+        <div class="item">
+          <div class="vn">Hiểu sâu thị trường BĐS Nhật: xu hướng giá, khu vực tăng trưởng, nhu cầu khách nước ngoài</div>
+          <div class="en">Deep understanding of Japan property market: price trends, growth areas, foreign demand</div>
+          <div class="jp">日本不動産市場の深い理解：価格動向・成長エリア・外国人需要</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl">Kỹ năng chuyên gia · Expert Skills · 専門スキル</div>
+        <div class="item">
+          <div class="vn">Phân tích thị trường BĐS: so sánh khu vực, phân tích giá thuê theo tuyến tàu điện, dự báo nhu cầu</div>
+          <div class="en">Market analysis: area comparison, rent analysis by train line, demand forecasting</div>
+          <div class="jp">市場分析：エリア比較・路線別賃料分析・需要予測</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tư vấn chiến lược: giúp khách chọn nhà phù hợp ngân sách dài hạn, không chỉ giải quyết ngắn hạn</div>
+          <div class="en">Strategic consulting: help clients choose homes for long-term budget, not just short-term needs</div>
+          <div class="jp">戦略的相談：短期でなく長期予算に合った物件選択をサポートする</div>
+        </div>
+        <div class="item">
+          <div class="vn">Kỹ năng đàm phán với quản lý nhà: giảm phí, xin gia hạn thời gian xét duyệt, điều kiện đặc biệt</div>
+          <div class="en">Negotiation with property managers: fee reduction, extended review time, special conditions</div>
+          <div class="jp">管理会社との交渉：費用削減・審査延長・特別条件の交渉スキル</div>
+        </div>
+        <div class="item">
+          <div class="vn">Kỹ năng quản lý pipeline khách hàng: phân loại hot/warm/cold, hệ thống CRM đơn giản</div>
+          <div class="en">Client pipeline management: hot/warm/cold classification, simple CRM system</div>
+          <div class="jp">顧客パイプライン管理：ホット/ウォーム/コールド分類・シンプルCRM活用</div>
+        </div>
+        <div class="item">
+          <div class="vn">Kỹ năng xây dựng thương hiệu: Facebook Ads cơ bản, TikTok cho BĐS, nội dung giáo dục khách hàng</div>
+          <div class="en">Brand building: basic Facebook Ads, TikTok for real estate, educational client content</div>
+          <div class="jp">ブランド構築：Facebook広告基礎・不動産TikTok・顧客教育コンテンツ</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-lbl" style="margin-top:4px">Lịch hoạt động tháng 3 · Month 3 Schedule · 第3ヶ月スケジュール</div>
+    <div class="row">
+      <div class="col">
+        <div class="sec-lbl" style="font-size:10.5px">Tuần 9–10: Tăng tốc · Accelerate · 加速</div>
+        <div class="item">
+          <div class="vn">Áp dụng toàn bộ kỹ năng đã học vào thực chiến. Đặt mục tiêu 2 hợp đồng/tuần. Gọi check phòng tối thiểu 10 cuộc/ngày. Mở rộng tệp khách bằng referral và TikTok.</div>
+          <div class="en">Apply all skills in live practice. Target 2 contracts/week. Min 10 room-check calls/day. Expand clients via referral and TikTok.</div>
+          <div class="jp">全スキルを実践に適用。週2件目標。毎日最低10件確認電話。紹介とTikTokで顧客拡大。</div>
+        </div>
+        <div class="item">
+          <div class="vn">Học phân tích thị trường theo khu vực: Shinjuku, Shibuya, Kita, Adachi, Edogawa. So sánh giá, tiện ích, tỷ lệ khách nước ngoài.</div>
+          <div class="en">Study area market analysis: Shinjuku, Shibuya, Kita, Adachi, Edogawa. Compare prices, amenities, foreigner ratio.</div>
+          <div class="jp">エリア別市場分析：新宿・渋谷・北区・足立区・江戸川区。価格・利便性・外国人比率を比較。</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl" style="font-size:10.5px">Tuần 11–12: Chuyên gia & Tổng kết · Expert &amp; Review · 専門家・総括</div>
+        <div class="item">
+          <div class="vn">Bắt đầu mentor cho thành viên mới: chia sẻ quy trình, kinh nghiệm xử lý từ chối, tips tìm khách. Đánh giá và cải thiện quy trình cá nhân.</div>
+          <div class="en">Start mentoring new members: share process, objection tips, client acquisition tricks. Evaluate and improve personal workflow.</div>
+          <div class="jp">新メンバーへのメンタリング開始：プロセス・反論対処・顧客獲得のノウハウ共有。個人ワークフロー改善。</div>
+        </div>
+        <div class="item">
+          <div class="vn">Tổng kết 3 tháng: đánh giá tổng thể KPI, điểm mạnh/yếu, kế hoạch phát triển tiếp theo (thăng cấp team leader, mục tiêu 6 tháng).</div>
+          <div class="en">3-month review: comprehensive KPI evaluation, strengths/weaknesses, next development plan (team leader promotion, 6-month goals).</div>
+          <div class="jp">3ヶ月総括：総合KPI評価・強み/弱み分析・次の成長計画（チームリーダー昇進・6ヶ月目標）。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-lbl" style="margin-top:8px">Chỉ tiêu tháng 3 · Month 3 KPIs · 第3ヶ月KPI</div>
+    <div class="goal-row">
+      <div class="goal"><div class="goal-num">≥5</div><div class="vn">hợp đồng/tháng</div><div class="en">contracts/month · 成約/月</div></div>
+      <div class="goal"><div class="goal-num">+20%</div><div class="vn">vượt doanh số</div><div class="en">above revenue target · 売上超過</div></div>
+      <div class="goal"><div class="goal-num">≥3</div><div class="vn">khách giới thiệu</div><div class="en">referral clients · 紹介顧客</div></div>
+      <div class="goal"><div class="goal-num">≥1</div><div class="vn">người được mentor</div><div class="en">mentored member · 指導メンバー</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HỆ THỐNG TÌM NHÀ ══ -->
+<div class="phase ptool">
+  <div class="ph-hdr">HỆ THỐNG TÌM NHÀ · Property Search Systems · 物件検索システム</div>
+  <div class="ph-body">
+    <div class="sys-row">
+      <div class="sys-box">
+        <div class="sys-title">Khu vực Kanto · Kanto Area · 関東エリア (ưu tiên · priority · 優先)</div>
+        <div class="sys-item"><span style="font-weight:500">ITANDI BB</span> — Tìm phòng theo điều kiện chi tiết · Search by detailed conditions · 詳細条件で物件検索</div>
+        <div class="sys-item"><span style="font-weight:500">Musashi (ムサシ)</span> — Nhiều phòng độc quyền · Exclusive listings · 独自物件が多い</div>
+        <div class="sys-item"><span style="font-weight:500">REINS (レインズ)</span> — Hệ thống lớn nhất Nhật · Japan's largest system · 日本最大の不動産システム</div>
+        <div class="sys-item"><span style="font-weight:500">Athome (アットホーム)</span> — Nhiều hình ảnh, dễ check · Many photos, easy to check · 画像多数、確認しやすい</div>
+        <div class="sys-item"><span style="font-weight:500">Robot Home / Villa</span> — Check trạng thái: 空室 / 募集中 / 申込中 / 成約</div>
+      </div>
+      <div class="sys-box">
+        <div class="sys-title">Ngoài Kanto · Outside Kanto · 関東外エリア</div>
+        <div class="sys-item"><span style="font-weight:500">Riapurro</span> — Toàn quốc · Nationwide · 全国対応</div>
+        <div class="sys-item"><span style="font-weight:500">Village House</span> — Giá rẻ, nhiều tỉnh · Affordable, multi-prefecture · 安価・多都道府県</div>
+        <div class="sys-item"><span style="font-weight:500">LEO</span> — Phòng giá trung bình · Mid-range rooms · 中価格帯物件</div>
+        <div class="sys-item"><span style="font-weight:500">DK Portal</span> — Chuẩn dữ liệu · Standardized data · 標準化データ</div>
+        <div class="sys-item"><span style="font-weight:500">Robot Home</span> — Check trạng thái nhanh · Quick status check · 空室状況の迅速確認</div>
+        <div class="sys-item"><span style="font-weight:500">App địa phương</span> — Tùy tỉnh thành · By prefecture · 都道府県別アプリ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TEAM BUILDING ══ -->
+<div class="phase pteam">
+  <div class="ph-hdr">TEAM BUILDING — Cải thiện tinh thần làm việc · Workplace Spirit · チームビルディング</div>
+  <div class="ph-body">
+    <div class="row">
+      <div class="col">
+        <div class="sec-lbl">Kiuke Time · 集中時間</div>
+        <div class="item">
+          <div class="vn">1 giờ tập trung sâu mỗi ngày (13:00–14:00): tắt thông báo, làm việc 100% — tìm phòng, gọi khách, gọi quản lý, gửi phòng</div>
+          <div class="en">1 hour deep focus daily (13:00–14:00): silent mode, 100% work — find rooms, call clients, call management, send rooms</div>
+          <div class="jp">毎日1時間の深い集中（13:00〜14:00）：通知オフ・100%集中—物件検索・顧客電話・管理会社連絡・物件送付</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl">Trưởng nhóm · Team Structure · チーム構成</div>
+        <div class="item">
+          <div class="vn">Chia 2 dãy Block A – Block B. Trưởng nhóm phụ trách: chia việc, đôn đốc, hỗ trợ xử lý từ chối, kiểm tra báo cáo, training người mới</div>
+          <div class="en">Split into Block A – Block B. Team leader responsibilities: task allocation, motivation, objection support, report review, new staff training</div>
+          <div class="jp">ブロックA・Bに分割。チームリーダーの役割：業務分配・モチベーション・反論サポート・報告確認・新人研修</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="sec-lbl">Trò chơi nội bộ · Internal Games · 社内ゲーム (60 phút/tuần)</div>
+        <div class="item">
+          <div class="vn">Ma Sói — tăng giao tiếp và teamwork</div>
+          <div class="en">Werewolf game — boost communication and teamwork</div>
+          <div class="jp">人狼ゲーム—コミュニケーションとチームワーク向上</div>
+        </div>
+        <div class="item">
+          <div class="vn">Đoán từ BĐS: 礼金 / 申込中 / 初期費用 — nâng từ vựng chuyên ngành</div>
+          <div class="en">Guess real estate terms: key money / application / initial costs — boost vocabulary</div>
+          <div class="jp">不動産用語クイズ：礼金・申込中・初期費用—専門用語力向上</div>
+        </div>
+        <div class="item">
+          <div class="vn">Pitching 60 giây: bán 1 căn trong 1 phút — luyện khả năng thuyết trình nhanh</div>
+          <div class="en">60-second pitch: sell 1 unit in 1 minute — train rapid presentation skills</div>
+          <div class="jp">60秒ピッチ：1分で1件売る—即興プレゼン力を鍛える</div>
+        </div>
+        <div class="item">
+          <div class="vn">Game "Đi xem nhà trong 3 phút" — mô phỏng tình huống thực tế, luyện phản xạ</div>
+          <div class="en">Game "Property viewing in 3 minutes" — simulate real scenarios, train quick reflexes</div>
+          <div class="jp">「3分内見」ゲーム—実際の状況をシミュレートし、素早い反応力を鍛える</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="display:flex;align-items:center;justify-content:center;gap:10px;padding:10px;border-radius:8px;background:var(--color-bg-secondary);border:0.5px solid var(--color-border-tertiary);margin-top:10px">
+  <div style="display:flex;gap:3px">
+    <div style="width:24px;height:24px;border-radius:5px;background:linear-gradient(135deg,#00C9A7,#0099CC);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-style:italic;color:#fff;font-family:Georgia,serif">n</div>
+    <div style="width:24px;height:24px;border-radius:5px;background:linear-gradient(135deg,#FF9EC4,#FF6B9D);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-style:italic;color:#fff;font-family:Georgia,serif">s</div>
+    <div style="width:24px;height:24px;border-radius:5px;background:linear-gradient(135deg,#00BFFF,#0066FF);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;font-style:italic;color:#fff;font-family:Georgia,serif">h</div>
+  </div>
+  <div>
+    <div style="font-size:12px;font-weight:700;color:#00BFFF">株式会社NASON HOME</div>
+    <div style="font-size:10px;color:#1B2A9E;font-weight:500">XÂY GIÁ TRỊ _ TẠO NIỀM TIN</div>
+  </div>
+</div>
+
+<div class="legend">
+  <span style="font-weight:500;color:var(--color-text-primary)">VN</span> Tiếng Việt &nbsp;|&nbsp;
+  <span style="font-weight:500;color:var(--color-text-primary)">EN</span> English &nbsp;|&nbsp;
+  <span style="font-weight:500;color:#3C3489">JP</span> 日本語 &nbsp;|&nbsp;
+  <span style="color:var(--color-text-secondary)">NASON HOME 不動産会社 — Tài liệu nội bộ</span>
+</div>
+
+</div>
