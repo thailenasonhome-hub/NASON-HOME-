@@ -28,10 +28,38 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card-tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500}
 .card-arrow{float:right;font-size:16px;color:#ccc;margin-top:-2px}
 .footer{text-align:center;padding:16px;font-size:11px;color:#B4B2A9;border-top:0.5px solid #e0ddd6;margin-top:8px}
+
+/* Lock screen */
+#lockscreen{position:fixed;inset:0;background:#f0f4f8;display:flex;align-items:center;justify-content:center;z-index:9999}
+.lock-box{background:#fff;border-radius:16px;padding:36px 32px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.1);width:300px}
+.lock-logo{font-size:32px;margin-bottom:12px}
+.lock-title{font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:4px}
+.lock-sub{font-size:12px;color:#888780;margin-bottom:20px}
+.lock-input{width:100%;padding:10px 14px;border:1.5px solid #e0ddd6;border-radius:10px;font-size:16px;text-align:center;letter-spacing:4px;outline:none;margin-bottom:12px}
+.lock-input:focus{border-color:#0F6E56}
+.lock-btn{width:100%;padding:11px;background:linear-gradient(135deg,#0F6E56,#185FA5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+.lock-err{font-size:12px;color:#e53e3e;margin-top:8px;display:none}
+.lock-remember{display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:12px;font-size:12px;color:#888780;cursor:pointer}
 </style>
 </head>
 <body>
-<div class="page">
+
+<!-- Lock Screen -->
+<div id="lockscreen">
+  <div class="lock-box">
+    <div class="lock-logo">🔒</div>
+    <div class="lock-title">NASON HOME</div>
+    <div class="lock-sub">Tài liệu nội bộ — Nhập mật khẩu để tiếp tục</div>
+    <input class="lock-input" type="password" id="pw" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter')unlock()">
+    <label class="lock-remember">
+      <input type="checkbox" id="remember" checked> Ghi nhớ trên thiết bị này
+    </label>
+    <button class="lock-btn" onclick="unlock()">Vào tài liệu →</button>
+    <div class="lock-err" id="err">Mật khẩu không đúng, thử lại!</div>
+  </div>
+</div>
+
+<div class="page" id="content" style="display:none">
   <div class="hdr">
     <div class="nsh-tiles">
       <div class="tile tile-n">n</div>
@@ -84,5 +112,32 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     株式会社ネイソンホーム — Tài liệu nội bộ, không sao chép ra ngoài — © 2025
   </div>
 </div>
+
+<script>
+const PW = '2026';
+const KEY = 'nh_auth';
+
+function unlock() {
+  const val = document.getElementById('pw').value;
+  if (val === PW) {
+    if (document.getElementById('remember').checked) {
+      localStorage.setItem(KEY, '1');
+    }
+    show();
+  } else {
+    document.getElementById('err').style.display = 'block';
+    document.getElementById('pw').value = '';
+    document.getElementById('pw').focus();
+  }
+}
+
+function show() {
+  document.getElementById('lockscreen').style.display = 'none';
+  document.getElementById('content').style.display = 'block';
+}
+
+// Kiểm tra đã ghi nhớ chưa
+if (localStorage.getItem(KEY) === '1') show();
+</script>
 </body>
 </html>
