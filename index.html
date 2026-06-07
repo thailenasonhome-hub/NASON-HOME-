@@ -39,7 +39,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lock-input:focus{border-color:#0F6E56}
 .lock-btn{width:100%;padding:11px;background:linear-gradient(135deg,#0F6E56,#185FA5);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
 .lock-err{font-size:12px;color:#e53e3e;margin-top:8px;display:none}
-.lock-remember{display:flex;align-items:center;gap:6px;justify-content:center;margin-bottom:12px;font-size:12px;color:#888780;cursor:pointer}
 </style>
 </head>
 <body>
@@ -51,9 +50,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="lock-title">NASON HOME</div>
     <div class="lock-sub">Tài liệu nội bộ — Nhập mật khẩu để tiếp tục</div>
     <input class="lock-input" type="password" id="pw" placeholder="••••" maxlength="20" onkeydown="if(event.key==='Enter')unlock()">
-    <label class="lock-remember">
-      <input type="checkbox" id="remember" checked> Ghi nhớ trên thiết bị này
-    </label>
     <button class="lock-btn" onclick="unlock()">Vào tài liệu →</button>
     <div class="lock-err" id="err">Mật khẩu không đúng, thử lại!</div>
   </div>
@@ -114,30 +110,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </div>
 
 <script>
-const PW = '2026';
-const KEY = 'nh_auth';
+const PW = 'NaSon2026';
 
 function unlock() {
   const val = document.getElementById('pw').value;
   if (val === PW) {
-    if (document.getElementById('remember').checked) {
-      localStorage.setItem(KEY, '1');
-    }
-    show();
+    document.getElementById('lockscreen').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
   } else {
     document.getElementById('err').style.display = 'block';
     document.getElementById('pw').value = '';
     document.getElementById('pw').focus();
   }
 }
-
-function show() {
-  document.getElementById('lockscreen').style.display = 'none';
-  document.getElementById('content').style.display = 'block';
-}
-
-// Kiểm tra đã ghi nhớ chưa
-if (localStorage.getItem(KEY) === '1') show();
 </script>
 </body>
 </html>
