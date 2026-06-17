@@ -1,6 +1,6 @@
 /* NASON HOME — service worker
    Bump CACHE version mỗi khi cập nhật index.html để buộc làm mới. */
-const CACHE = 'nason-home-v5';
+const CACHE = 'nason-home-v6';
 const ASSETS = [
   './',
   './index.html',
