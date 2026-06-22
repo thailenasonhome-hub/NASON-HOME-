@@ -495,8 +495,8 @@ function setLang(l){LANG=l;localStorage.setItem('nsh_lang',l);
 function applyStaticLang(){document.querySelectorAll('[data-vi]').forEach(e=>{e.textContent=e.getAttribute('data-'+LANG)||e.getAttribute('data-vi');});}
 function ym(d){return d.toISOString().slice(0,7);}
 function load(){try{return JSON.parse(localStorage.getItem('nsh_hr_v3'));}catch(e){return null;}}
-function save(){localStorage.setItem('nsh_hr_v3',JSON.stringify(S));if(typeof fbPush==='function')fbPush();renderAll();}
-function logH(t){if(!S)return;if(!S.history)S.history=[];S.history.push({date:new Date().toLocaleString('vi-VN'),text:t});if(S.history.length>300)S.history=S.history.slice(-300);}
+function save(){try{localStorage.setItem('nsh_hr_v3',JSON.stringify(S));}catch(e){try{alert(L({vi:'⚠️ Không lưu được dữ liệu (bộ nhớ đầy hoặc trình duyệt chặn lưu, vd Safari ẩn danh). Hãy sao lưu và dùng trình duyệt thường.',jp:'⚠️ 保存できません（容量超過またはプライベートモード）。バックアップしてください。',en:'⚠️ Could not save (storage full or private mode). Please back up.'}));}catch(_e){}}if(typeof fbPush==='function')fbPush();renderAll();}
+function logH(t){if(!S)return;if(!S.history)S.history=[];var _op=(typeof fbOpName==='function')?fbOpName():'';S.history.push({date:new Date().toLocaleString('vi-VN'),text:(_op?('['+_op+'] '):'')+t,by:_op});if(S.history.length>300)S.history=S.history.slice(-300);}
 function dmKey(){return VIEW.month;}
 function monthsSince(dateStr){if(!dateStr)return 0;var d=new Date(dateStr+'T00:00:00');if(isNaN(d.getTime()))return 0;var now=new Date(VIEW.month+'-01T00:00:00');var m=(now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());return m<0?0:m;}
 function staffContracts(s){return (S.deals||[]).filter(function(d){return d.staffId===s.id&&countsRev(d);}).length;}
@@ -590,7 +590,7 @@ function payrollAgg(){
 }
 
 /* ============================================================ RENDER ============================================================ */
-function renderAll(){renderDash();renderDeal();renderClients();renderStaff();renderPayroll();renderLifeline();renderExpense();renderKPI();renderPromo();renderSettings();renderAIStaff();markLocks();nshCheckReminders();}
+function renderAll(){if(typeof syncStaffKPI==='function')syncStaffKPI();renderDash();renderDeal();renderClients();renderStaff();renderPayroll();renderLifeline();renderExpense();renderKPI();renderPromo();renderSettings();renderAIStaff();markLocks();nshCheckReminders();}
 
 /* ----- DASHBOARD / Tổng doanh số ----- */
 function cfItems(){if(!S.cashFlow)S.cashFlow=[];return S.cashFlow;}
@@ -1046,7 +1046,7 @@ function delStaff(id){
     if(!confirm(L({vi:'Nhân viên "'+nm+'" còn '+n+' giao dịch.\nOK = CHUYỂN toàn bộ sang "'+others[0].name+'" rồi xoá.\nCancel = huỷ.',jp:'スタッフ「'+nm+'」には'+n+'件の取引があります。\nOK=全取引を「'+others[0].name+'」へ移して削除。\nCancel=中止。',en:'Staff "'+nm+'" has '+n+' deal(s).\nOK = reassign all to "'+others[0].name+'" then delete.\nCancel = abort.'})))return;
     S.deals.forEach(function(d){if(d.staffId===id)d.staffId=others[0].id;});logH('Chuyển '+n+' giao dịch của '+nm+' → '+others[0].name+', rồi xoá NV');
   } else { if(!confirm(L({vi:'Xoá nhân viên này?',jp:'このスタッフを削除しますか？',en:'Delete this staff member?'})))return;logH('Xoá nhân viên: '+nm); }
-  if(S.deduct)delete S.deduct[id];if(S.staffTargets)delete S.staffTargets[id];
+  if(Array.isArray(S.kotsuList)){var _tgt=others[0]?others[0].id:null;var _mset={};S.kotsuList.forEach(function(k){if(k&&k.staffId===id){var _m=(k.salaryMonth||(k.date||'').slice(0,7));if(_m)_mset[_m]=1;}});if(_tgt){S.kotsuList.forEach(function(k){if(k&&k.staffId===id)k.staffId=_tgt;});if(typeof syncKotsu==='function')Object.keys(_mset).forEach(function(m){syncKotsu(_tgt,m);});}else{S.kotsuList=S.kotsuList.filter(function(k){return !(k&&k.staffId===id);});}}if(S.deduct)delete S.deduct[id];if(S.staffTargets)delete S.staffTargets[id];
   S.deals.forEach(function(d){if(d.supportId===id){d.supportId='';d.supportAmt=0;d.supportPct=0;}});
   S.staff=S.staff.filter(function(x){return x.id!==id;});save();
 }
@@ -1569,7 +1569,7 @@ function nasonDataContext(){
     L2.push('Kỳ: '+VIEW.month+' ('+periodLabel()+')');
     L2.push('Tổng doanh số: '+yen(totalSales)+' | Số deal: '+totalDeals+' | Hoa hồng trả NV: '+yen(totalPay)+' | Chi phí: '+yen(totalExp)+' | Lợi nhuận ước: '+yen(totalSales-totalPay-totalExp));
     L2.push('Nhân viên ('+rows.length+'):');
-    rows.forEach(function(r){ L2.push('- '+r.s.name+' ['+rkName(r.s.rank)+', '+r.p+'%]: '+r.count+' deal, DS '+yen(r.gross)+', hoa hồng '+yen(r.pay)); });
+    rows.forEach(function(r,idx){ L2.push('- NV-'+String.fromCharCode(65+(idx%26))+(idx>=26?('-'+Math.floor(idx/26)):'')+' ['+rkName(r.s.rank)+', '+r.p+'%]: '+r.count+' deal, DS '+yen(r.gross)+', hoa hồng '+yen(r.pay)); });
     try{ var ct=coTargetObj(); var ca=coActual('month'); var cy=coActual('year');
       L2.push('Mục tiêu THÁNG: DS '+yen(ct.month.revenue)+' (đạt '+yen(ca.revenue)+'), HĐ '+ct.month.contracts+' (đạt '+ca.contracts+')');
       L2.push('Mục tiêu NĂM: DS '+yen(ct.year.revenue)+' (đạt '+yen(cy.revenue)+'), HĐ '+ct.year.contracts+' (đạt '+cy.contracts+')');
@@ -1838,10 +1838,51 @@ function switchTab(t){
 function unlock(){if(d_('pw').value===PW){sessionStorage.setItem('nsh_ok','1');document.getElementById('lock').style.display='none';document.getElementById('app').style.display='flex';boot();}
   else{d_('lerr').style.display='block';d_('pw').value='';d_('pw').focus();}}
 /* ===== ĐỒNG BỘ FIREBASE (Realtime) — chỉ chạy khi đã điền NSH_FB; nếu trống → localStorage như cũ ===== */
-var FB_REF=null, FB_CID='c'+Math.random().toString(36).slice(2,10), FB_applying=false, FB_pushT=null, FB_ready=false;
+var FB_BASE=null, FB_CID='c'+Math.random().toString(36).slice(2,10), FB_applying=false, FB_pushT=null, FB_ready=false, FB_renderPending=false, FB_focusHooked=false, FB_listening=false, FB_synced={};
+
+function normalizeState(){
+  if(!S||typeof S!=='object')return;
+  function arr(v){return Array.isArray(v)?v:(v&&typeof v==='object'?Object.keys(v).sort(function(a,b){return a-b;}).map(function(k){return v[k];}):[]);}
+  S.staff=arr(S.staff); S.deals=arr(S.deals); S.expenses=arr(S.expenses);
+  S.history=arr(S.history); S.kotsuList=arr(S.kotsuList);
+  S.lifelineOpts=arr(S.lifelineOpts); S.customExp=arr(S.customExp);
+  if(!Array.isArray(S.statusCfg)||!S.statusCfg.length){S.statusCfg=(typeof DEFAULT_STATUS!=='undefined'?DEFAULT_STATUS:[]).map(function(x){return {label:x.label,color:x.color,text:x.text};});}
+  if(!Array.isArray(S.expCats)||!S.expCats.length){S.expCats=(typeof DEFAULT_EXP_CATS!=='undefined'?DEFAULT_EXP_CATS.slice():[]);}
+  if(!S.cfg||typeof S.cfg!=='object')S.cfg={};
+  if(!S.deduct||typeof S.deduct!=='object')S.deduct={};
+  if(!S.staffTargets||typeof S.staffTargets!=='object')S.staffTargets={};
+  if(!S.locks||typeof S.locks!=='object')S.locks={};
+  if(!S.coTargets||typeof S.coTargets!=='object')S.coTargets={};
+  ['year','month'].forEach(function(k){
+    if(!S.coTargets[k]||typeof S.coTargets[k]!=='object')S.coTargets[k]={revenue:0,contracts:0,items:[],note:''};
+    if(!Array.isArray(S.coTargets[k].items))S.coTargets[k].items=arr(S.coTargets[k].items);
+  });
+  S.staff.forEach(function(st){if(st&&!Array.isArray(st.sales3))st.sales3=arr(st?st.sales3:null);});
+  S.deals.forEach(function(d){if(d&&typeof d==='object'&&typeof getLifeline==='function')getLifeline(d);});
+}
 function fbConfigured(){return typeof NSH_FB!=='undefined'&&NSH_FB&&NSH_FB.databaseURL&&NSH_FB.apiKey;}
 function fbPill(){var el=document.getElementById('fb-status');if(el)return el;el=document.createElement('div');el.id='fb-status';el.style.cssText='position:fixed;left:10px;bottom:10px;z-index:9000;font-size:11px;font-weight:700;background:#fff;border:1px solid #D2EBE1;border-radius:20px;padding:5px 11px;box-shadow:0 1px 4px rgba(0,0,0,.12);color:#6b7c77';document.body.appendChild(el);return el;}
 function fbStatus(msg,color){var el=fbPill();el.textContent=msg;el.style.color=color||'#6b7c77';}
+function fbOpName(){try{return localStorage.getItem('nsh_op_name')||'';}catch(e){return '';}}
+/* ===== Đồng bộ THEO TỪNG BẢN GHI (per-record) — 15 người nhập cùng lúc không đè nhau ===== */
+var FB_COLLS=['deals','staff','expenses','kotsu','cashFlow'];
+var FB_FIELD={deals:'deals',staff:'staff',expenses:'expenses',kotsu:'kotsuList',cashFlow:'cashFlow'};
+var FB_FIELD_SET={deals:1,staff:1,expenses:1,kotsuList:1,cashFlow:1};
+var FB_STAFF_DERIVED=['tenure','contracts','sales3','companyTarget3m','teamTarget3m']; // field suy ra theo kỳ-xem → KHÔNG đồng bộ (cục bộ mỗi máy)
+function fbColl(c){var f=FB_FIELD[c];if(!Array.isArray(S[f]))S[f]=[];return S[f];}
+function fbSanitize(c,rec){if(c!=='staff'||!rec||typeof rec!=='object')return rec;var o={};for(var k in rec){if(FB_STAFF_DERIVED.indexOf(k)>=0)continue;o[k]=rec[k];}return o;}
+function fbEq(a,b){try{return JSON.stringify(a)===JSON.stringify(b);}catch(e){return false;}}
+function fbIndexSan(c,arr){var o={};(arr||[]).forEach(function(r){if(r&&r.id)o[r.id]=fbSanitize(c,r);});return o;}
+function fbMetaObj(){var o={};for(var k in S){if(FB_FIELD_SET[k]||k==='history')continue;o[k]=S[k];}return o;} // meta = cấu hình (trừ collection & history-cục bộ)
+function fbMetaStr(){try{return JSON.stringify(fbMetaObj());}catch(e){return '{}';}}
+function fbRecStr(c,rec){try{return JSON.stringify(fbSanitize(c,rec));}catch(e){return '';}}
+function fbSnapshot(){var o={_meta:fbMetaStr()};FB_COLLS.forEach(function(c){var m={};fbColl(c).forEach(function(r){if(r&&r.id)m[r.id]=fbRecStr(c,r);});o[c]=m;});return o;}
+function fbNorm(c,rec){if(c==='deals'&&rec&&typeof rec==='object'&&typeof getLifeline==='function')getLifeline(rec);return rec;}
+function fbApplyRecord(c,id,rec){rec=fbNorm(c,rec);var f=FB_FIELD[c];if(!Array.isArray(S[f]))S[f]=[];var arr=S[f];var i=-1;for(var k=0;k<arr.length;k++){if(arr[k]&&arr[k].id===id){i=k;break;}}var inc=fbSanitize(c,rec);if(i>=0){if(fbEq(fbSanitize(c,fbNorm(c,arr[i])),inc))return false;arr[i]=(c==='staff')?Object.assign({},arr[i],inc):inc;return true;}arr.push((c==='staff')?Object.assign({},inc):inc);return true;}
+function fbRemoveRecord(c,id){var f=FB_FIELD[c];if(!Array.isArray(S[f]))return false;var n=S[f].length;S[f]=S[f].filter(function(x){return !(x&&x.id===id);});return S[f].length!==n;}
+function fbApplyMeta(str){var m;try{m=JSON.parse(str);}catch(e){return false;}if(!m||typeof m!=='object')return false;var changed=false;for(var k in m){if(FB_FIELD_SET[k]||k==='history')continue;if(!fbEq(S[k],m[k])){S[k]=m[k];changed=true;}}return changed;}
+function fbSaveLocal(){try{localStorage.setItem('nsh_hr_v3',JSON.stringify(S));}catch(e){}}
+function fbRender(){var a=document.activeElement;var typing=a&&(a.tagName==='INPUT'||a.tagName==='SELECT'||a.tagName==='TEXTAREA');if(typing){FB_renderPending=true;return;}FB_renderPending=false;try{renderAll();}catch(e){}}
 function fbInit(){
   if(FB_ready)return;
   if(!fbConfigured())return;
@@ -1849,6 +1890,7 @@ function fbInit(){
   try{
     if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(NSH_FB);
     FB_ready=true;
+    if(!FB_focusHooked){FB_focusHooked=true;document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;var t=a&&(a.tagName==='INPUT'||a.tagName==='SELECT'||a.tagName==='TEXTAREA');if(FB_renderPending&&!t){FB_renderPending=false;try{renderAll();}catch(e){}}},160);});}
     var cred=null;try{cred=JSON.parse(localStorage.getItem('nsh_sync_cred')||'null');}catch(e){}
     if(cred&&cred.email&&cred.pass)fbSignIn(cred.email,cred.pass,true);
     else fbLoginModal();
@@ -1867,28 +1909,77 @@ function fbSignIn(email,pass,silent){
   });
 }
 function fbStart(){
-  FB_REF=firebase.database().ref('companies/nason/hr_v3');
-  fbStatus('🟢 Đã kết nối đồng bộ','#0F6E56');
-  FB_REF.on('value',function(snap){
-    var v=snap.val();
-    if(!v||!v.data){if(S)fbPush();return;}        // cloud trống → đẩy dữ liệu máy này lên (seed)
-    if(v._by===FB_CID)return;                      // bản mình vừa ghi → bỏ qua (chống echo)
+  FB_BASE=firebase.database().ref('companies/nason/v2');
+  fbStatus('🔄 Đang tải dữ liệu…','#185FA5');
+  FB_BASE.once('value').then(function(snap){
+    var cloud=snap.val()||{};
     FB_applying=true;
-    try{
-      localStorage.setItem('nsh_hr_v3',JSON.stringify(v.data));
-      S=v.data;
-      if(!S.history)S.history=[];if(!S.kotsuList)S.kotsuList=[];
-      if(typeof ensureCfg==='function')ensureCfg();
-      renderAll();
-      fbStatus('🟢 Đồng bộ '+(new Date()).toLocaleTimeString(),'#0F6E56');
-    }catch(e){}
+    var updates={};
+    FB_COLLS.forEach(function(c){
+      var cc=cloud[c]||{};
+      Object.keys(cc).forEach(function(id){if(cc[id])fbApplyRecord(c,id,cc[id]);});
+      var local=fbIndexSan(c,fbColl(c));
+      Object.keys(local).forEach(function(id){if(!cc[id])updates[c+'/'+id]=local[id];}); // đẩy bản ghi cục bộ chưa có trên cloud (gộp 2 chiều)
+    });
+    if(cloud.meta){fbApplyMeta(cloud.meta);}else{updates['meta']=fbMetaStr();}
+    if(typeof normalizeState==='function')normalizeState();
+    if(typeof ensureCfg==='function')ensureCfg();
+    fbSaveLocal();
     FB_applying=false;
-  },function(err){fbStatus('⚠️ Mất kết nối đồng bộ','#c0392b');});
+    if(Object.keys(updates).length){try{FB_BASE.update(updates);}catch(e){}}
+    FB_synced=fbSnapshot();
+    try{renderAll();}catch(e){}
+    fbStatus('🟢 Đã kết nối đồng bộ','#0F6E56');
+    fbAttachListeners();
+  }).catch(function(e){fbStatus('⚠️ Lỗi tải dữ liệu đồng bộ','#c0392b');});
+}
+function fbAttachListeners(){
+  if(FB_listening)return;FB_listening=true;
+  FB_COLLS.forEach(function(c){
+    var ref=FB_BASE.child(c);
+    ref.on('child_added',function(s){fbIncoming(c,s.key,s.val());});
+    ref.on('child_changed',function(s){fbIncoming(c,s.key,s.val());});
+    ref.on('child_removed',function(s){fbIncomingRemove(c,s.key);});
+  });
+  FB_BASE.child('meta').on('value',function(s){fbIncomingMeta(s.val());});
+}
+function fbIncoming(c,id,rec){
+  if(!rec)return;FB_applying=true;
+  var changed=fbApplyRecord(c,id,rec); // idempotent: bản của chính mình → không đổi → bỏ qua (chống echo)
+  if(changed){fbSaveLocal();if(!FB_synced[c])FB_synced[c]={};FB_synced[c][id]=fbRecStr(c,rec);fbRender();}
+  FB_applying=false;
+}
+function fbIncomingRemove(c,id){
+  FB_applying=true;
+  var rm=fbRemoveRecord(c,id);
+  if(rm){fbSaveLocal();if(FB_synced[c])delete FB_synced[c][id];fbRender();}
+  FB_applying=false;
+}
+function fbIncomingMeta(str){
+  if(str==null)return;if(str===FB_synced._meta)return; // echo của mình
+  FB_applying=true;
+  var changed=fbApplyMeta(str);FB_synced._meta=str;
+  if(changed){if(typeof normalizeState==='function')normalizeState();if(typeof ensureCfg==='function')ensureCfg();fbSaveLocal();fbRender();}
+  FB_applying=false;
 }
 function fbPush(){
-  if(!FB_REF||FB_applying)return;
+  if(!FB_BASE||FB_applying)return;
   clearTimeout(FB_pushT);
-  FB_pushT=setTimeout(function(){try{FB_REF.set({data:S,_at:Date.now(),_by:FB_CID});}catch(e){}},400);
+  FB_pushT=setTimeout(function(){
+    if(!FB_BASE||FB_applying)return;
+    try{
+      var updates={};
+      FB_COLLS.forEach(function(c){
+        var prev=FB_synced[c]||{};var seen={};
+        fbColl(c).forEach(function(r){if(!r||!r.id)return;seen[r.id]=1;var st=fbRecStr(c,r);if(st!==prev[r.id])updates[c+'/'+r.id]=fbSanitize(c,r);}); // chỉ bản ghi thay đổi THẬT
+        Object.keys(prev).forEach(function(id){if(!seen[id])updates[c+'/'+id]=null;});                 // bản ghi đã xoá
+      });
+      var mNow=fbMetaStr();
+      if(mNow!==FB_synced._meta)updates['meta']=mNow;
+      if(Object.keys(updates).length){FB_BASE.update(updates);}
+      FB_synced=fbSnapshot();
+    }catch(e){}
+  },500);
 }
 function fbLoginModal(){
   if(document.getElementById('fb-login'))return;
@@ -1897,20 +1988,22 @@ function fbLoginModal(){
   d.innerHTML='<div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:22px">'
     +'<div style="font-size:16px;font-weight:800;color:#0F6E56;margin-bottom:6px">🔗 Kết nối đồng bộ công ty</div>'
     +'<div style="font-size:12.5px;color:#6b7c77;margin-bottom:14px;line-height:1.5">Nhập tài khoản đồng bộ chung của công ty (do quản lý cung cấp). Chỉ cần nhập 1 lần trên máy/trình duyệt này.</div>'
+    +'<input id="fb-name" placeholder="Tên người dùng máy này (để ghi nhật ký)" autocomplete="off" style="width:100%;padding:9px 11px;border:1px solid #D2EBE1;border-radius:8px;margin-bottom:8px;font-size:13.5px;box-sizing:border-box">'
     +'<input id="fb-email" placeholder="Email công ty" autocomplete="off" style="width:100%;padding:9px 11px;border:1px solid #D2EBE1;border-radius:8px;margin-bottom:8px;font-size:13.5px;box-sizing:border-box">'
     +'<input id="fb-pass" type="password" placeholder="Mật khẩu" style="width:100%;padding:9px 11px;border:1px solid #D2EBE1;border-radius:8px;margin-bottom:12px;font-size:13.5px;box-sizing:border-box">'
     +'<div style="display:flex;gap:8px"><button onclick="fbDoLogin()" style="flex:1;background:#0F6E56;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:700;cursor:pointer;font-size:13.5px">Kết nối</button>'
     +'<button onclick="fbSkip()" style="background:#fff;color:#6b7c77;border:1px solid #D2EBE1;border-radius:9px;padding:10px 14px;cursor:pointer;font-size:13.5px">Để sau</button></div>'
     +'<div id="fb-lerr" style="color:#c0392b;font-size:12px;margin-top:8px"></div></div>';
   document.body.appendChild(d);
-  setTimeout(function(){var e=document.getElementById('fb-email');if(e)e.focus();},50);
+  setTimeout(function(){var e=document.getElementById('fb-name');if(e)e.focus();},50);
 }
-function fbDoLogin(){var e=(document.getElementById('fb-email').value||'').trim(),p=document.getElementById('fb-pass').value||'';if(!e||!p){document.getElementById('fb-lerr').textContent='Vui lòng nhập đủ email + mật khẩu';return;}fbCloseLogin();fbSignIn(e,p,false);}
+function fbDoLogin(){var nm=(document.getElementById('fb-name')&&document.getElementById('fb-name').value||'').trim();var e=(document.getElementById('fb-email').value||'').trim(),p=document.getElementById('fb-pass').value||'';if(!e||!p){document.getElementById('fb-lerr').textContent='Vui lòng nhập đủ email + mật khẩu';return;}try{if(nm)localStorage.setItem('nsh_op_name',nm);}catch(_e){}fbCloseLogin();fbSignIn(e,p,false);}
 function fbSkip(){fbCloseLogin();fbStatus('⚪ Chưa đồng bộ (chỉ máy này)','#999');}
 function fbCloseLogin(){var d=document.getElementById('fb-login');if(d)d.remove();}
 function fbLogout(){try{localStorage.removeItem('nsh_sync_cred');if(typeof firebase!=='undefined'&&firebase.auth)firebase.auth().signOut();}catch(e){}location.reload();}
 function boot(){
   S=load();if(!S){S=seed();save();}
+  try{if(typeof normalizeState==='function'){normalizeState();localStorage.setItem('nsh_hr_v3',JSON.stringify(S));}}catch(e){}
   if(!S.history)S.history=[];if(!S.kotsuList)S.kotsuList=[];if(!S.statusCfg||!S.statusCfg.length)S.statusCfg=DEFAULT_STATUS.map(function(x){return {label:x.label,color:x.color,text:x.text};});if(S.statusCfg&&S.statusCfg.length&&!S.statusCfg.some(function(x){return x.label==='契約完了中';})){var _di=S.statusCfg.map(function(x){return x.label;}).indexOf('契約完了');var _ns={label:'契約完了中',color:'#FFC107',text:'#5a4a00'};if(_di>=0)S.statusCfg.splice(_di,0,_ns);else S.statusCfg.push(_ns);}if(!S.coTargets)S.coTargets={year:{revenue:0,contracts:0,items:[],note:''},month:{revenue:0,contracts:0,items:[],note:''}};if(!S.staffTargets)S.staffTargets={};if(!S.customExp)S.customExp=['','','','',''];if(!S.expCats||!S.expCats.length)S.expCats=DEFAULT_EXP_CATS.slice();if(!S.locks)S.locks={};if(!S.cfg)S.cfg={};if(typeof S.cfg.taxRate!=='number')S.cfg.taxRate=10;if(S.deduct){Object.keys(S.deduct).forEach(function(_id){var _r=S.deduct[_id];if(_r&&(typeof _r.bhxh==='number'||typeof _r.bhtn==='number'||typeof _r.tax==='number'||typeof _r.other==='number'||typeof _r.bonus==='number')){var _nr={};_nr[VIEW.month]={bhxh:+_r.bhxh||0,bhtn:+_r.bhtn||0,tax:+_r.tax||0,other:+_r.other||0,bonus:+_r.bonus||0};S.deduct[_id]=_nr;}});}ensureCfg();if(!S.locksOpened){S.locks={};S.locksOpened=true;localStorage.setItem('nsh_hr_v3',JSON.stringify(S));}
   d_('pMonth').value=VIEW.month;
   document.querySelectorAll('#segP button').forEach(b=>b.addEventListener('click',()=>{VIEW.period=b.dataset.p;document.querySelectorAll('#segP button').forEach(x=>x.classList.toggle('on',x===b));renderAll();}));
