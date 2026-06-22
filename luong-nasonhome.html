@@ -5,6 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NASON HOME — Hệ thống Lương &amp; Nhân sự</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- ===== FIREBASE SDK (đồng bộ realtime) ===== -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+<script>
+/* ╔═══════════════════════════════════════════════════════════╗
+   ║  DÁN CẤU HÌNH FIREBASE CỦA ANH VÀO ĐÂY (giữa các dấu "")    ║
+   ║  Lấy ở: Firebase Console → ⚙ Project settings → Your apps   ║
+   ║  Để TRỐNG = app chạy bình thường, KHÔNG đồng bộ (như cũ).   ║
+   ╚═══════════════════════════════════════════════════════════╝ */
+var NSH_FB = {
+  apiKey:      "AIzaSyCyC2QaUF_-tskyrDuK81vGYlQ3MGJ5N5s",
+  authDomain:  "nason-home.firebaseapp.com",
+  databaseURL: "https://nason-home-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:   "nason-home",
+  appId:       "1:658977296011:web:4c8d91766d32eed77c0e8e"
+};
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--t:#0F6E56;--t2:#185FA5;--td:#0a4d41;--pk:#e05a8a;--bl:#2d6ab4;--gd:#b8780a;
@@ -477,7 +495,7 @@ function setLang(l){LANG=l;localStorage.setItem('nsh_lang',l);
 function applyStaticLang(){document.querySelectorAll('[data-vi]').forEach(e=>{e.textContent=e.getAttribute('data-'+LANG)||e.getAttribute('data-vi');});}
 function ym(d){return d.toISOString().slice(0,7);}
 function load(){try{return JSON.parse(localStorage.getItem('nsh_hr_v3'));}catch(e){return null;}}
-function save(){localStorage.setItem('nsh_hr_v3',JSON.stringify(S));renderAll();}
+function save(){localStorage.setItem('nsh_hr_v3',JSON.stringify(S));if(typeof fbPush==='function')fbPush();renderAll();}
 function logH(t){if(!S)return;if(!S.history)S.history=[];S.history.push({date:new Date().toLocaleString('vi-VN'),text:t});if(S.history.length>300)S.history=S.history.slice(-300);}
 function dmKey(){return VIEW.month;}
 function monthsSince(dateStr){if(!dateStr)return 0;var d=new Date(dateStr+'T00:00:00');if(isNaN(d.getTime()))return 0;var now=new Date(VIEW.month+'-01T00:00:00');var m=(now.getFullYear()-d.getFullYear())*12+(now.getMonth()-d.getMonth());return m<0?0:m;}
@@ -1819,6 +1837,78 @@ function switchTab(t){
 }
 function unlock(){if(d_('pw').value===PW){sessionStorage.setItem('nsh_ok','1');document.getElementById('lock').style.display='none';document.getElementById('app').style.display='flex';boot();}
   else{d_('lerr').style.display='block';d_('pw').value='';d_('pw').focus();}}
+/* ===== ĐỒNG BỘ FIREBASE (Realtime) — chỉ chạy khi đã điền NSH_FB; nếu trống → localStorage như cũ ===== */
+var FB_REF=null, FB_CID='c'+Math.random().toString(36).slice(2,10), FB_applying=false, FB_pushT=null, FB_ready=false;
+function fbConfigured(){return typeof NSH_FB!=='undefined'&&NSH_FB&&NSH_FB.databaseURL&&NSH_FB.apiKey;}
+function fbPill(){var el=document.getElementById('fb-status');if(el)return el;el=document.createElement('div');el.id='fb-status';el.style.cssText='position:fixed;left:10px;bottom:10px;z-index:9000;font-size:11px;font-weight:700;background:#fff;border:1px solid #D2EBE1;border-radius:20px;padding:5px 11px;box-shadow:0 1px 4px rgba(0,0,0,.12);color:#6b7c77';document.body.appendChild(el);return el;}
+function fbStatus(msg,color){var el=fbPill();el.textContent=msg;el.style.color=color||'#6b7c77';}
+function fbInit(){
+  if(FB_ready)return;
+  if(!fbConfigured())return;
+  if(typeof firebase==='undefined'){fbStatus('⚠️ Chưa tải được Firebase (kiểm tra mạng)','#c0392b');return;}
+  try{
+    if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(NSH_FB);
+    FB_ready=true;
+    var cred=null;try{cred=JSON.parse(localStorage.getItem('nsh_sync_cred')||'null');}catch(e){}
+    if(cred&&cred.email&&cred.pass)fbSignIn(cred.email,cred.pass,true);
+    else fbLoginModal();
+  }catch(e){fbStatus('⚠️ Lỗi cấu hình đồng bộ','#c0392b');}
+}
+function fbSignIn(email,pass,silent){
+  fbStatus('🔄 Đang kết nối đồng bộ…','#185FA5');
+  firebase.auth().signInWithEmailAndPassword(email,pass).then(function(){
+    localStorage.setItem('nsh_sync_cred',JSON.stringify({email:email,pass:pass}));
+    fbStart();
+  }).catch(function(e){
+    localStorage.removeItem('nsh_sync_cred');
+    fbStatus('⚠️ Sai tài khoản đồng bộ','#c0392b');
+    if(!silent)alert('Đăng nhập đồng bộ thất bại:\n'+e.message);
+    fbLoginModal();
+  });
+}
+function fbStart(){
+  FB_REF=firebase.database().ref('companies/nason/hr_v3');
+  fbStatus('🟢 Đã kết nối đồng bộ','#0F6E56');
+  FB_REF.on('value',function(snap){
+    var v=snap.val();
+    if(!v||!v.data){if(S)fbPush();return;}        // cloud trống → đẩy dữ liệu máy này lên (seed)
+    if(v._by===FB_CID)return;                      // bản mình vừa ghi → bỏ qua (chống echo)
+    FB_applying=true;
+    try{
+      localStorage.setItem('nsh_hr_v3',JSON.stringify(v.data));
+      S=v.data;
+      if(!S.history)S.history=[];if(!S.kotsuList)S.kotsuList=[];
+      if(typeof ensureCfg==='function')ensureCfg();
+      renderAll();
+      fbStatus('🟢 Đồng bộ '+(new Date()).toLocaleTimeString(),'#0F6E56');
+    }catch(e){}
+    FB_applying=false;
+  },function(err){fbStatus('⚠️ Mất kết nối đồng bộ','#c0392b');});
+}
+function fbPush(){
+  if(!FB_REF||FB_applying)return;
+  clearTimeout(FB_pushT);
+  FB_pushT=setTimeout(function(){try{FB_REF.set({data:S,_at:Date.now(),_by:FB_CID});}catch(e){}},400);
+}
+function fbLoginModal(){
+  if(document.getElementById('fb-login'))return;
+  var d=document.createElement('div');d.id='fb-login';
+  d.style.cssText='position:fixed;inset:0;background:rgba(15,30,26,.62);display:flex;align-items:center;justify-content:center;z-index:9999;padding:18px;font-family:inherit';
+  d.innerHTML='<div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:22px">'
+    +'<div style="font-size:16px;font-weight:800;color:#0F6E56;margin-bottom:6px">🔗 Kết nối đồng bộ công ty</div>'
+    +'<div style="font-size:12.5px;color:#6b7c77;margin-bottom:14px;line-height:1.5">Nhập tài khoản đồng bộ chung của công ty (do quản lý cung cấp). Chỉ cần nhập 1 lần trên máy/trình duyệt này.</div>'
+    +'<input id="fb-email" placeholder="Email công ty" autocomplete="off" style="width:100%;padding:9px 11px;border:1px solid #D2EBE1;border-radius:8px;margin-bottom:8px;font-size:13.5px;box-sizing:border-box">'
+    +'<input id="fb-pass" type="password" placeholder="Mật khẩu" style="width:100%;padding:9px 11px;border:1px solid #D2EBE1;border-radius:8px;margin-bottom:12px;font-size:13.5px;box-sizing:border-box">'
+    +'<div style="display:flex;gap:8px"><button onclick="fbDoLogin()" style="flex:1;background:#0F6E56;color:#fff;border:0;border-radius:9px;padding:10px;font-weight:700;cursor:pointer;font-size:13.5px">Kết nối</button>'
+    +'<button onclick="fbSkip()" style="background:#fff;color:#6b7c77;border:1px solid #D2EBE1;border-radius:9px;padding:10px 14px;cursor:pointer;font-size:13.5px">Để sau</button></div>'
+    +'<div id="fb-lerr" style="color:#c0392b;font-size:12px;margin-top:8px"></div></div>';
+  document.body.appendChild(d);
+  setTimeout(function(){var e=document.getElementById('fb-email');if(e)e.focus();},50);
+}
+function fbDoLogin(){var e=(document.getElementById('fb-email').value||'').trim(),p=document.getElementById('fb-pass').value||'';if(!e||!p){document.getElementById('fb-lerr').textContent='Vui lòng nhập đủ email + mật khẩu';return;}fbCloseLogin();fbSignIn(e,p,false);}
+function fbSkip(){fbCloseLogin();fbStatus('⚪ Chưa đồng bộ (chỉ máy này)','#999');}
+function fbCloseLogin(){var d=document.getElementById('fb-login');if(d)d.remove();}
+function fbLogout(){try{localStorage.removeItem('nsh_sync_cred');if(typeof firebase!=='undefined'&&firebase.auth)firebase.auth().signOut();}catch(e){}location.reload();}
 function boot(){
   S=load();if(!S){S=seed();save();}
   if(!S.history)S.history=[];if(!S.kotsuList)S.kotsuList=[];if(!S.statusCfg||!S.statusCfg.length)S.statusCfg=DEFAULT_STATUS.map(function(x){return {label:x.label,color:x.color,text:x.text};});if(S.statusCfg&&S.statusCfg.length&&!S.statusCfg.some(function(x){return x.label==='契約完了中';})){var _di=S.statusCfg.map(function(x){return x.label;}).indexOf('契約完了');var _ns={label:'契約完了中',color:'#FFC107',text:'#5a4a00'};if(_di>=0)S.statusCfg.splice(_di,0,_ns);else S.statusCfg.push(_ns);}if(!S.coTargets)S.coTargets={year:{revenue:0,contracts:0,items:[],note:''},month:{revenue:0,contracts:0,items:[],note:''}};if(!S.staffTargets)S.staffTargets={};if(!S.customExp)S.customExp=['','','','',''];if(!S.expCats||!S.expCats.length)S.expCats=DEFAULT_EXP_CATS.slice();if(!S.locks)S.locks={};if(!S.cfg)S.cfg={};if(typeof S.cfg.taxRate!=='number')S.cfg.taxRate=10;if(S.deduct){Object.keys(S.deduct).forEach(function(_id){var _r=S.deduct[_id];if(_r&&(typeof _r.bhxh==='number'||typeof _r.bhtn==='number'||typeof _r.tax==='number'||typeof _r.other==='number'||typeof _r.bonus==='number')){var _nr={};_nr[VIEW.month]={bhxh:+_r.bhxh||0,bhtn:+_r.bhtn||0,tax:+_r.tax||0,other:+_r.other||0,bonus:+_r.bonus||0};S.deduct[_id]=_nr;}});}ensureCfg();if(!S.locksOpened){S.locks={};S.locksOpened=true;localStorage.setItem('nsh_hr_v3',JSON.stringify(S));}
@@ -1830,6 +1920,7 @@ function boot(){
   applyStaticLang();
   renderAll();
   enforceInitialLock();
+  try{if(typeof fbInit==='function')fbInit();}catch(e){}
 }
 if(sessionStorage.getItem('nsh_ok')==='1'){document.getElementById('lock').style.display='none';document.getElementById('app').style.display='flex';boot();}
 </script>
