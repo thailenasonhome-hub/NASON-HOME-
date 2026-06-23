@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NASON HOME — Hệ thống Lương &amp; Nhân sự</title>
+<meta name="robots" content="noindex,nofollow,noarchive">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <!-- ===== FIREBASE SDK (đồng bộ realtime) ===== -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -1724,6 +1725,7 @@ function renderSettings(){
     </div>
     <div id="nasonKeyStatus" class="hint" style="margin-top:8px">${nasonGetKey()?L({vi:'✓ Đã có key — Nason Kun gọi thẳng Anthropic, chạy mọi nơi.',jp:'✓ キー設定済み',en:'✓ Key set'}):L({vi:'Chưa có key — đang dùng proxy (chỉ chạy trên GitHub Pages / localhost).',jp:'キー未設定 — プロキシ使用中(GitHub Pagesのみ)',en:'No key — using proxy (GitHub Pages only).'})}</div>
   </div>
+  ${snapPanel()}
   ${lockPanel()}`;
 }
 
@@ -1891,21 +1893,19 @@ function fbInit(){
     if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(NSH_FB);
     FB_ready=true;
     if(!FB_focusHooked){FB_focusHooked=true;document.addEventListener('focusout',function(){setTimeout(function(){var a=document.activeElement;var t=a&&(a.tagName==='INPUT'||a.tagName==='SELECT'||a.tagName==='TEXTAREA');if(FB_renderPending&&!t){FB_renderPending=false;try{renderAll();}catch(e){}}},160);});}
-    var cred=null;try{cred=JSON.parse(localStorage.getItem('nsh_sync_cred')||'null');}catch(e){}
-    if(cred&&cred.email&&cred.pass)fbSignIn(cred.email,cred.pass,true);
-    else fbLoginModal();
+    try{firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);}catch(e){}
+    try{localStorage.removeItem('nsh_sync_cred');}catch(e){} /* S2: KHÔNG lưu mật khẩu thô nữa — dọn di sản */
+    firebase.auth().onAuthStateChanged(function(user){ if(user){ if(!FB_BASE)fbStart(); } else { if(!document.getElementById('fb-login'))fbLoginModal(); } });
   }catch(e){fbStatus('⚠️ Lỗi cấu hình đồng bộ','#c0392b');}
 }
 function fbSignIn(email,pass,silent){
   fbStatus('🔄 Đang kết nối đồng bộ…','#185FA5');
   firebase.auth().signInWithEmailAndPassword(email,pass).then(function(){
-    localStorage.setItem('nsh_sync_cred',JSON.stringify({email:email,pass:pass}));
-    fbStart();
+    /* S2: KHÔNG lưu mật khẩu — Firebase tự giữ phiên; onAuthStateChanged sẽ gọi fbStart */
   }).catch(function(e){
-    localStorage.removeItem('nsh_sync_cred');
     fbStatus('⚠️ Sai tài khoản đồng bộ','#c0392b');
     if(!silent)alert('Đăng nhập đồng bộ thất bại:\n'+e.message);
-    fbLoginModal();
+    if(!document.getElementById('fb-login'))fbLoginModal();
   });
 }
 function fbStart(){
@@ -1930,6 +1930,7 @@ function fbStart(){
     FB_synced=fbSnapshot();
     try{renderAll();}catch(e){}
     fbStatus('🟢 Đã kết nối đồng bộ','#0F6E56');
+    try{snapAuto();}catch(e){}
     fbAttachListeners();
   }).catch(function(e){fbStatus('⚠️ Lỗi tải dữ liệu đồng bộ','#c0392b');});
 }
@@ -2001,6 +2002,20 @@ function fbDoLogin(){var nm=(document.getElementById('fb-name')&&document.getEle
 function fbSkip(){fbCloseLogin();fbStatus('⚪ Chưa đồng bộ (chỉ máy này)','#999');}
 function fbCloseLogin(){var d=document.getElementById('fb-login');if(d)d.remove();}
 function fbLogout(){try{localStorage.removeItem('nsh_sync_cred');if(typeof firebase!=='undefined'&&firebase.auth)firebase.auth().signOut();}catch(e){}location.reload();}
+/* ===== PR1: Lưới an toàn — mốc khôi phục tự động (Firebase snapshots) ===== */
+var SNAP_PATH='companies/nason/v2_snapshots';
+var SNAP_KEEP=30;
+function snapMake(reason){
+  if(!FB_ready||typeof firebase==='undefined')return Promise.resolve(false);
+  try{var ref=firebase.database().ref(SNAP_PATH);var ts=Date.now();var rec={at:ts,by:fbOpName()||'',reason:reason||'auto',count:(S.deals||[]).length,staff:(S.staff||[]).length,json:JSON.stringify(S)};return ref.child(String(ts)).set(rec).then(function(){snapPrune();return true;}).catch(function(){return false;});}catch(e){return Promise.resolve(false);}
+}
+function snapPrune(){try{var ref=firebase.database().ref(SNAP_PATH);ref.orderByKey().once('value').then(function(snap){var keys=[];snap.forEach(function(c){keys.push(c.key);});if(keys.length>SNAP_KEEP){keys.slice(0,keys.length-SNAP_KEEP).forEach(function(k){ref.child(k).remove();});}});}catch(e){}}
+function snapAuto(){if(!FB_ready)return;try{firebase.database().ref(SNAP_PATH).orderByKey().limitToLast(1).once('value').then(function(snap){var last=0;snap.forEach(function(c){last=parseInt(c.key,10)||0;});if(Date.now()-last>12*3600*1000)snapMake('auto');});}catch(e){}}
+function snapList(cb){if(!FB_ready){cb([]);return;}try{firebase.database().ref(SNAP_PATH).orderByKey().once('value').then(function(snap){var arr=[];snap.forEach(function(c){var v=c.val()||{};arr.push({key:c.key,at:v.at,by:v.by,reason:v.reason,count:v.count,staff:v.staff});});arr.reverse();cb(arr);}).catch(function(){cb([]);});}catch(e){cb([]);}}
+function snapMakeBtn(){if(!FB_ready){alert(L({vi:'Chưa kết nối đồng bộ — mốc lưu trên Firebase. Hãy kết nối trước.',jp:'同期未接続です。',en:'Not connected to sync.'}));return;}snapMake('manual').then(function(ok){alert(ok?L({vi:'✅ Đã tạo mốc khôi phục.',jp:'✅ 保存しました。',en:'✅ Snapshot created.'}):L({vi:'⚠️ Tạo mốc thất bại.',jp:'⚠️ 失敗。',en:'⚠️ Failed.'}));snapRenderUI();});}
+function snapRenderUI(){var box=document.getElementById('snapList');if(!box)return;box.innerHTML=L({vi:'⏳ Đang tải…',jp:'⏳ 読込中…',en:'⏳ Loading…'});snapList(function(arr){if(!arr.length){box.innerHTML=L({vi:'Chưa có mốc nào (sẽ tự tạo khi kết nối đồng bộ).',jp:'まだありません。',en:'No snapshots yet.'});return;}var h='<div style="display:flex;flex-direction:column;gap:6px">';arr.forEach(function(s){var d=new Date(s.at||parseInt(s.key,10));var ds=isNaN(d.getTime())?s.key:d.toLocaleString('vi-VN');var tag=s.reason==='before-restore'?'🔁':(s.reason==='manual'?'📸':'🕛');h+='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #D2EBE1;border-radius:8px;padding:7px 10px;background:#fff"><div style="font-size:12px;color:var(--g700)">'+tag+' <b>'+escH(ds)+'</b><br><span style="font-size:11px">'+(s.count||0)+' deal · '+(s.staff||0)+' NV'+(s.by?(' · '+escH(s.by)):'')+'</span></div><button class="btn dg" style="font-size:12px;padding:5px 10px" onclick="snapRestore(\''+s.key+'\')">↩ '+L({vi:'Khôi phục',jp:'復元',en:'Restore'})+'</button></div>';});h+='</div>';box.innerHTML=h;});}
+function snapRestore(key){if(!FB_ready){alert(L({vi:'Chưa kết nối đồng bộ.',jp:'同期未接続。',en:'Not connected.'}));return;}if(!confirm(L({vi:'⚠️ KHÔI PHỤC sẽ thay TOÀN BỘ dữ liệu hiện tại trên MỌI MÁY bằng mốc này.\nHệ thống tự lưu 1 mốc của dữ liệu HIỆN TẠI trước (để quay lại được).\n\nTiếp tục?',jp:'⚠️ 全端末のデータをこの復元ポイントで置換します。現在のデータも先に自動保存します。続行?',en:'⚠️ Restore replaces ALL current data on ALL devices. Current data auto-saved first. Continue?'})))return;if(!confirm(L({vi:'Xác nhận LẦN CUỐI: khôi phục về mốc đã chọn?',jp:'最終確認:復元しますか?',en:'FINAL confirm: restore this snapshot?'})))return;snapMake('before-restore').then(function(){firebase.database().ref(SNAP_PATH).child(key).once('value').then(function(snap){var v=snap.val();if(!v||!v.json){alert(L({vi:'Không đọc được mốc.',jp:'読込失敗。',en:'Cannot read snapshot.'}));return;}try{var data=JSON.parse(v.json);S=data;if(typeof normalizeState==='function')normalizeState();if(typeof ensureCfg==='function')ensureCfg();fbSaveLocal();renderAll();if(typeof fbPush==='function')fbPush();alert(L({vi:'✅ Đã khôi phục. Đang đồng bộ sang các máy khác…',jp:'✅ 復元しました。同期中…',en:'✅ Restored. Syncing to other devices…'}));}catch(e){alert('Lỗi khôi phục: '+e.message);}});});}
+function snapPanel(){return '<div class="panel"><h3><span class="ti">🛟 '+L({vi:'Mốc khôi phục (bản sao an toàn tự động)',jp:'復元ポイント（自動バックアップ）',en:'Restore points (auto safety snapshots)'})+'</span></h3>'+'<div class="hint" style="margin-bottom:8px">'+L({vi:'Hệ thống tự lưu mốc dữ liệu (mỗi ngày + trước khi khôi phục). Lỡ xoá nhầm thì chọn 1 mốc để quay lại. Khôi phục áp cho MỌI máy.',jp:'毎日＋復元前に自動保存。誤削除時に復元可能。全端末に反映。',en:'Auto-saves daily + before restore. Roll back if needed. Applies to ALL devices.'})+'</div>'+'<div class="btnrow"><button class="btn" onclick="snapMakeBtn()">📸 '+L({vi:'Tạo mốc ngay',jp:'今すぐ保存',en:'Snapshot now'})+'</button>'+'<button class="btn sec" onclick="snapRenderUI()">🔄 '+L({vi:'Tải danh sách mốc',jp:'一覧を読込',en:'Load list'})+'</button></div>'+'<div id="snapList" class="hint" style="margin-top:10px">'+L({vi:'Bấm “Tải danh sách mốc” để xem.',jp:'「一覧を読込」を押す。',en:'Click “Load list”.'})+'</div></div>';}
 function boot(){
   S=load();if(!S){S=seed();save();}
   try{if(typeof normalizeState==='function'){normalizeState();localStorage.setItem('nsh_hr_v3',JSON.stringify(S));}}catch(e){}

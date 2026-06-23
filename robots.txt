@@ -1,0 +1,13 @@
+# robots.txt — 株式会社ネイソンホーム (NASON HOME)
+# Công cụ & tài liệu NỘI BỘ: KHÔNG cho công cụ tìm kiếm lập chỉ mục.
+User-agent: *
+Disallow: /index.html
+Disallow: /luong-nasonhome.html
+Disallow: /keiyakukin-mitsumorisho.html
+Disallow: /daotao.html
+Disallow: /noiquy.html
+Disallow: /quytrinhthue.html
+Disallow: /tuvankh.html
+
+# Trang giới thiệu công khai (marketing) vẫn cho phép lập chỉ mục:
+Allow: /catalog-nasonhome.jp.html
