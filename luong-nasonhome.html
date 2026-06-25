@@ -548,8 +548,13 @@ function avg3(s){var a=s.sales3||[];if(!a.length)return 0;return Math.round(a.re
 function dealSales(d){return (d.broker||0)+(d.ad||0);}    // 売上 = 仲介手数料 + 広告料
 function dealNet(d){var tr=(typeof d.taxPct==='number')?d.taxPct:((S&&S.cfg&&typeof S.cfg.taxRate==='number')?S.cfg.taxRate:10);return Math.round(dealSales(d)*(1-tr/100));} // doanh số tính HH = 売上 − thuế%(theo từng deal, mặc định cấu hình/10%)
 function dealComm(d){var s=staffById(d.staffId);var p=commPctOf(s);return Math.round(dealNet(d)*p/100);}
-function dealSupportPay(d){if(!d||!d.supportId)return 0;return Math.round((+d.supportAmt||0)+dealSales(d)*(+d.supportPct||0)/100);}
-function staffSupportPay(id){return payrollDeals().filter(function(d){return isDone(d)&&d.supportId===id;}).reduce(function(x,d){return x+dealSupportPay(d);},0);}
+function dealSupportPay(d){if(!d||!d.supportId)return 0;var amt=+d.supportAmt||0;if(amt>0)return Math.round(amt);var pct=+d.supportPct||0;if(pct>0)return Math.round(dealNet(d)*pct/100);return 0;}
+function supportOv(){if(!S.supportOverride||typeof S.supportOverride!=='object')S.supportOverride={};return S.supportOverride;}
+function effectiveSupportPay(d){if(!d||!d.supportId)return 0;var ov=supportOv()[d.id];if(ov){if(ov.deleted)return 0;if(typeof ov.amount==='number'&&!isNaN(ov.amount))return Math.round(ov.amount);}return dealSupportPay(d);}
+function setSupportOv(dealId,amount){supportOv()[dealId]={amount:Math.max(0,+amount||0)};logH('Sửa lương hỗ trợ thủ công');save();}
+function delSupportOv(dealId){if(!confirm(L({vi:'Ẩn dòng lương hỗ trợ này khỏi bảng tính? (Deal gốc KHÔNG bị xoá)',jp:'このサポート給与行を非表示にしますか？（取引は削除されません）',en:'Hide this support pay row? (Deal NOT deleted)'})))return;supportOv()[dealId]={deleted:true};logH('Ẩn dòng lương hỗ trợ thủ công');save();}
+function resetSupportOv(dealId){if(supportOv()[dealId]){delete supportOv()[dealId];logH('Khôi phục lương hỗ trợ tự động');save();}}
+function staffSupportPay(id){return payrollDeals().filter(function(d){return isDone(d)&&d.supportId===id;}).reduce(function(x,d){return x+effectiveSupportPay(d);},0);}
 function dealLifeline(d){var lf=(d&&d.lifeline)||{};return (+lf.denkiAmt||0)+(+lf.wifiAmt||0);}
 function staffLifeline(id){return payrollDeals().filter(function(d){return d.staffId===id&&isDone(d);}).reduce(function(x,d){return x+dealLifeline(d);},0);}
 function lifelineTotal(){return payrollDeals().filter(isDone).reduce(function(x,d){return x+dealLifeline(d);},0);} // thực lãnh NV từ deal
@@ -572,13 +577,14 @@ function agg(){
   let salary=0,support=0,lifeline=0;
   done.forEach(d=>{salary+=dealComm(d);support+=dealSupportPay(d);lifeline+=dealLifeline(d);});
   const expense=S.expenses.filter(e=>inPeriod(expDate(e))).reduce((x,e)=>x+(e.amount||0),0);
+  const deposit=periodDeals().reduce((x,d)=>x+Math.max(0,+d.deposit||0),0);
   let bonus=0;(S.staff||[]).forEach(s=>{bonus+=deductSumOverPeriod(s.id,'bonus');});
   let kotsu=0;(S.staff||[]).forEach(s=>{kotsu+=deductSumOverPeriod(s.id,'kotsu');});
   let ded=0;(S.staff||[]).forEach(s=>{ded+=deductSumOverPeriod(s.id,'bhxh')+deductSumOverPeriod(s.id,'bhtn')+deductSumOverPeriod(s.id,'tax')+deductSumOverPeriod(s.id,'other');});
   const tax=sales-taxed;
   const profitBefore=taxed-salary-bonus-kotsu-support-lifeline;
   const profitAfter=profitBefore-expense;
-  return {count:rev.length,sales,broker,ad,taxed,tax,salary,bonus,kotsu,support,lifeline,ded,expense,profitBefore,profitAfter};
+  return {count:rev.length,sales,broker,ad,taxed,tax,salary,bonus,kotsu,support,lifeline,ded,expense,deposit,profitBefore,profitAfter};
 }
 function payrollAgg(){
   const pd=payrollDeals().filter(isDone);
@@ -621,7 +627,8 @@ function kotsuMonthOf(k){return (k&&k.salaryMonth)||((k&&k.date)||'').slice(0,7)
 function kotsuSumClosed(staffId,mk){return kotsuList().filter(function(k){return k.staffId===staffId&&kotsuMonthOf(k)===mk&&k.status===KOTSU_OK;}).reduce(function(x,k){return x+(+k.price||0);},0);}
 function kotsuHasEntries(staffId,mk){return kotsuList().some(function(k){return k.staffId===staffId&&kotsuMonthOf(k)===mk;});}
 function kotsuDeductRec(id,mk){if(!S.deduct)S.deduct={};if(!S.deduct[id]||typeof S.deduct[id]!=='object')S.deduct[id]={};if(!S.deduct[id][mk])S.deduct[id][mk]={bhxh:0,bhtn:0,tax:0,other:0,bonus:0};return S.deduct[id][mk];}
-function syncKotsu(id,mk){if(!id||!mk)return;kotsuDeductRec(id,mk).kotsu=kotsuSumClosed(id,mk);}
+function isKotsuManual(s){return !!(s&&/nguyen\s*thi\s*kim\s*dung/i.test(((s.name||'')+'').replace(/\s+/g,' ').trim()));}
+function syncKotsu(id,mk){if(!id||!mk)return;if(isKotsuManual(staffById(id)))return;kotsuDeductRec(id,mk).kotsu=kotsuSumClosed(id,mk);}
 function kotsuMonths(){var set={};kotsuList().forEach(function(k){var m=kotsuMonthOf(k);if(m)set[m]=1;});if(VIEW.month)set[VIEW.month]=1;return Object.keys(set).sort().reverse();}
 function setKotsuFilter(v){KOTSU_FILTER=v;renderLifeline();}
 function addKotsu(){var s0=(S.staff&&S.staff[0])?S.staff[0].id:'';var mk=(KOTSU_FILTER&&KOTSU_FILTER!=='all')?KOTSU_FILTER:VIEW.month;kotsuList().push({id:uid('kt'),staffId:s0,date:(new Date()).toISOString().slice(0,10),route:'',price:0,clientName:'',building:'',salaryMonth:mk,status:KOTSU_OK});if(s0)syncKotsu(s0,mk);logH('Thêm 交通費 (chi phí đi lại)');save();}
@@ -629,7 +636,7 @@ function saveKotsu(id,field,val){var k=kotsuList().find(function(x){return x.id=
 function delKotsu(id){var k=kotsuList().find(function(x){return x.id===id;});if(!k)return;if(!confirm(L({vi:'Xoá dòng 交通費 này?',jp:'この交通費を削除？',en:'Delete this transport row?'})))return;var st=k.staffId,mk=kotsuMonthOf(k);S.kotsuList=kotsuList().filter(function(x){return x.id!==id;});syncKotsu(st,mk);logH('Xoá 交通費');save();}
 function kotsuStaffSel(id,cur){return '<select onchange="saveKotsu(\''+id+'\',\'staffId\',this.value)" style="padding:3px 6px;border:1px solid var(--g200);border-radius:6px;font-size:12px">'+(S.staff||[]).map(function(s){return '<option value="'+s.id+'"'+(s.id===cur?' selected':'')+'>'+escH(s.name)+'</option>';}).join('')+'</select>';}
 function kotsuStatusSel(id,cur){return '<select onchange="saveKotsu(\''+id+'\',\'status\',this.value)" style="padding:3px 6px;border:1px solid var(--g200);border-radius:6px;font-size:12px">'+[KOTSU_OK,KOTSU_NO].map(function(o){return '<option'+(o===cur?' selected':'')+'>'+o+'</option>';}).join('')+'</select>';}
-function kotsuCell(r){var mk=dmKey();if(kotsuHasEntries(r.s.id,mk))return '<span class="yen" title="'+L({vi:'Tự động từ bảng 交通費 (ライフライン)',jp:'交通費表から自動',en:'Auto from transport table'})+'"><b>'+yen(r.kotsu)+'</b> 🔒</span>';return '<input type="number" style="width:90px;padding:3px 6px" value="'+(r.dd.kotsu||'')+'" onchange="saveDeduct(\''+r.s.id+'\',\'kotsu\',this.value)" placeholder="0">';}
+function kotsuCell(r){var mk=dmKey();if(kotsuHasEntries(r.s.id,mk)&&!isKotsuManual(r.s))return '<span class="yen" title="'+L({vi:'Tự động từ bảng 交通費 (ライフライン)',jp:'交通費表から自動',en:'Auto from transport table'})+'"><b>'+yen(r.kotsu)+'</b> 🔒</span>';return '<input type="number" style="width:90px;padding:3px 6px" value="'+(r.dd.kotsu||'')+'" onchange="saveDeduct(\''+r.s.id+'\',\'kotsu\',this.value)" placeholder="0">';}
 function kotsuPanelHTML(){
   var fil=KOTSU_FILTER;
   var rowsAll=kotsuList().slice().sort(function(a,b){return (b.date||'').localeCompare(a.date||'');});
@@ -691,7 +698,7 @@ function renderLifeline(){
 }
 function renderDash(){
   const a=agg();const pa=payrollAgg();const pl=periodLabel();const totalBonus=a.bonus;const tongNhanTot=pa.tongNhanTot;
-  const sysDef=[{k:'sales',lab:L({vi:'Doanh số 売上 (vào)',jp:'売上（入）',en:'Sales (in)'}),t:'in',lk:a.sales},{k:'tax',lab:L({vi:'Thuế/khấu trừ (ra)',jp:'税・控除（出）',en:'Tax/deduction (out)'}),t:'out',lk:a.tax},{k:'salary',lab:L({vi:'Lương NV (ra)',jp:'給与（出）',en:'Salary (out)'}),t:'out',lk:a.salary},{k:'bonus',lab:L({vi:'Thưởng (ra)',jp:'賞与（出）',en:'Bonus (out)'}),t:'out',lk:a.bonus},{k:'kotsu',lab:L({vi:'交通費 (ra)',jp:'交通費（出）',en:'Transport (out)'}),t:'out',lk:a.kotsu},{k:'expense',lab:L({vi:'Chi phí (ra)',jp:'経費（出）',en:'Expenses (out)'}),t:'out',lk:a.expense}];
+  const sysDef=[{k:'sales',lab:L({vi:'Doanh số 売上 (vào)',jp:'売上（入）',en:'Sales (in)'}),t:'in',lk:a.sales},{k:'deposit',lab:L({vi:'Tiền cọc 申込金 (vào)',jp:'申込金（入）',en:'Deposit (in)'}),t:'in',lk:a.deposit},{k:'tax',lab:L({vi:'Thuế/khấu trừ (ra)',jp:'税・控除（出）',en:'Tax/deduction (out)'}),t:'out',lk:a.tax},{k:'salary',lab:L({vi:'Lương NV (ra)',jp:'給与（出）',en:'Salary (out)'}),t:'out',lk:a.salary},{k:'bonus',lab:L({vi:'Thưởng (ra)',jp:'賞与（出）',en:'Bonus (out)'}),t:'out',lk:a.bonus},{k:'kotsu',lab:L({vi:'交通費 (ra)',jp:'交通費（出）',en:'Transport (out)'}),t:'out',lk:a.kotsu},{k:'expense',lab:L({vi:'Chi phí (ra)',jp:'経費（出）',en:'Expenses (out)'}),t:'out',lk:a.expense}];
   var sysNet=0,_parts=[];
   sysDef.forEach(function(it){var ev=cfSysEff(it.k,it.lk);if(ev===null)return;sysNet+=(it.t==='in'?ev:-ev);_parts.push('<span class="flowbox">'+it.lab+': <b class="yen">'+yen(ev)+'</b></span>');});
   cfItems().forEach(function(c){_parts.push('<span class="flowbox" style="background:'+(c.type==='in'?'var(--okbg)':'var(--errbg)')+'">'+escH(c.name)+' ('+(c.type==='in'?L({vi:'vào',jp:'入',en:'in'}):L({vi:'ra',jp:'出',en:'out'}))+'): <b class="yen">'+yen(c.amount)+'</b></span>');});
@@ -701,6 +708,7 @@ function renderDash(){
   <h2 class="th">${L({vi:'📊 Tổng quan công ty',jp:'📊 会社概要',en:'📊 Company Overview'})}</h2><div class="sub">${L({vi:'Tổng doanh số &amp; dòng tiền',jp:'総売上・キャッシュフロー',en:'Total sales & cash flow'})} · ${pl}</div>
   <div class="kpis">
     <div class="kpi"><div class="l">${L({vi:'Tổng doanh số 売上',jp:'総売上',en:'Total sales'})}</div><div class="v yen">${yen(a.sales)}</div><small>仲介 + 広告 · ${a.count} ${L({vi:'GD',jp:'件',en:'deals'})}</small></div>
+    <div class="kpi" style="border-left:3px solid #2e9e6b"><div class="l">${L({vi:'Tổng tiền cọc 申込金',jp:'申込金合計',en:'Total deposit'})}</div><div class="v yen">${yen(a.deposit)}</div><small>${L({vi:'tiền VÀO công ty — KHÔNG tính doanh số',jp:'入金 — 売上に含まない',en:'cash IN — not counted in sales'})}</small></div>
     <div class="kpi"><div class="l">${L({vi:'Doanh số tính HH (sau thuế/khấu trừ)',jp:'歩合対象額（税・控除後）',en:'Commission base (after tax/deduction)'})}</div><div class="v yen">${yen(a.taxed)}</div><small>${L({vi:'thuế',jp:'税',en:'tax'})}: ${yen(a.tax)}</small></div>
     <div class="kpi"><div class="l">${L({vi:'Tổng phí môi giới (¥)',jp:'仲介手数料合計 (¥)',en:'Total brokerage fee (¥)'})}</div><div class="v yen">${yen(a.broker)}</div><small>${L({vi:'phí công ty thu được',jp:'会社受取手数料',en:'fee collected by company'})}</small></div>
     <div class="kpi"><div class="l">${L({vi:'Tổng 広告料 (AD)',jp:'広告料合計',en:'Total advertising'})}</div><div class="v yen">${yen(a.ad)}</div></div>
@@ -781,7 +789,7 @@ function svcCell(d){return '💡'+svcTr(d.svcUtil||'chưa đăng ký')+'<br>📶
 
 function dealRowsTable(deals,opts){
   opts=opts||{};
-  var head=[L({vi:'STT',jp:'No.',en:'No.'}),L({vi:'Ngày',jp:'取引日',en:'Date'}),L({vi:'Phân khúc',jp:'事業分野',en:'Segment'}),L({vi:'Khách',jp:'顧客',en:'Customer'}),L({vi:'Tên tòa nhà',jp:'建物名',en:'Building'}),L({vi:'Địa chỉ',jp:'住所',en:'Address'}),L({vi:'Email',jp:'メール',en:'Email'}),L({vi:'Tiền nhà',jp:'家賃',en:'Rent'}),L({vi:'Tiền quản lý',jp:'管理費',en:'Mgmt fee'}),L({vi:'Công ty QL',jp:'管理会社名',en:'Mgmt company'}),L({vi:'TEL công ty QL',jp:'管理会社TEL',en:'Mgmt phone'}),L({vi:'Nhân viên',jp:'担当',en:'Staff'})];
+  var head=[L({vi:'STT',jp:'No.',en:'No.'}),L({vi:'Ngày',jp:'取引日',en:'Date'}),L({vi:'Phân khúc',jp:'事業分野',en:'Segment'}),L({vi:'Khách',jp:'顧客',en:'Customer'}),L({vi:'Tên tòa nhà',jp:'建物名',en:'Building'}),L({vi:'Địa chỉ',jp:'住所',en:'Address'}),L({vi:'Email',jp:'メール',en:'Email'}),L({vi:'Tiền nhà',jp:'家賃',en:'Rent'}),L({vi:'Tiền quản lý',jp:'管理費',en:'Mgmt fee'}),L({vi:'Tiền cọc',jp:'申込金',en:'Deposit'}),L({vi:'Công ty QL',jp:'管理会社名',en:'Mgmt company'}),L({vi:'TEL công ty QL',jp:'管理会社TEL',en:'Mgmt phone'}),L({vi:'Nhân viên',jp:'担当',en:'Staff'})];
   head.push(L({vi:'Tình trạng xét duyệt',jp:'審査状況',en:'Approval status'}));
   head.push(L({vi:'Tháng nhận lương',jp:'給与計上月',en:'Salary month'}));
   if(opts.comm)head.push(L({vi:'%HH',jp:'歩合率',en:'Comm %'}));
@@ -792,7 +800,7 @@ function dealRowsTable(deals,opts){
   var colspan=head.length+(opts.actions?1:0);
   var body=deals.map(function(d,i){var s=staffById(d.staffId);
     var c='<td>'+(i+1)+'</td><td>'+d.date+'</td><td>'+segName(d.seg)+'</td><td>'+(d.clientName||'')+'</td><td>'+escH(d.bldgName||'—')+'</td><td>'+escH(d.bldgAddr||'—')+'</td><td>'+(d.clientEmail||'—')+'</td>'
-      +'<td class="yen">'+(d.rent?yen(d.rent):'—')+'</td><td class="yen">'+(d.mgmtFee?yen(d.mgmtFee):'—')+'</td><td>'+(d.mgmtName||'—')+'</td><td>'+(d.mgmtPhone||'—')+'</td><td>'+dealStaffSelect(d.id,d.staffId)+'</td><td>'+dealStatusSelect(d.id,d.status)+'</td><td>'+(opts.actions?dealSalaryMonthInput(d.id,d):dealSalaryMonth(d))+'</td>';
+      +'<td class="yen">'+(d.rent?yen(d.rent):'—')+'</td><td class="yen">'+(d.mgmtFee?yen(d.mgmtFee):'—')+'</td><td class="yen">'+(d.deposit?yen(d.deposit):'—')+'</td><td>'+(d.mgmtName||'—')+'</td><td>'+(d.mgmtPhone||'—')+'</td><td>'+dealStaffSelect(d.id,d.staffId)+'</td><td>'+dealStatusSelect(d.id,d.status)+'</td><td>'+(opts.actions?dealSalaryMonthInput(d.id,d):dealSalaryMonth(d))+'</td>';
     if(opts.comm)c+='<td>'+commPctOf(s)+'%</td>';
     c+='<td class="yen">'+yen(d.broker)+'</td><td class="yen">'+yen(d.ad)+'</td><td class="yen">'+yen(dealSales(d))+'</td>';
     if(opts.comm)c+='<td class="yen">'+yen(dealNet(d))+'</td><td class="yen">'+yen(dealComm(d))+'</td><td class="yen">'+yen(dealComm(d))+'</td>';
@@ -807,7 +815,7 @@ function dealRowsTable(deals,opts){
   var tComm=deals.reduce(function(x,d){return x+dealComm(d);},0);
   var tfoot='';
   if(deals.length){
-    var tl='<td colspan="13"><b>'+L({vi:'TỔNG',jp:'合計',en:'TOTAL'})+'</b></td>';var cells;
+    var tl='<td colspan="14"><b>'+L({vi:'TỔNG',jp:'合計',en:'TOTAL'})+'</b></td>';var cells;
     if(opts.comm){cells=tl+'<td></td>'+'<td class="yen"><b>'+yen(tBroker)+'</b></td><td class="yen"><b>'+yen(tAd)+'</b></td><td class="yen"><b>'+yen(tSales)+'</b></td>'+'<td class="yen"><b>'+yen(tNet)+'</b></td><td class="yen"><b>'+yen(tComm)+'</b></td><td class="yen"><b>'+yen(tComm)+'</b></td>'+'<td></td>';if(opts.actions)cells+='<td></td>';}
     else{cells=tl+'<td class="yen"><b>'+yen(tBroker)+'</b></td><td class="yen"><b>'+yen(tAd)+'</b></td><td class="yen"><b>'+yen(tSales)+'</b></td>'+'<td></td>';if(opts.actions)cells+='<td></td>';}
     tfoot='<tfoot><tr style="background:var(--g50)">'+cells+'</tr></tfoot>';
@@ -815,21 +823,24 @@ function dealRowsTable(deals,opts){
   return '<div class="tw"><table class="tb">'+thead+'<tbody>'+body+'</tbody>'+tfoot+'</table></div>';
 }
 function dealAOA(comm){
-  var head=[L({vi:'Ngày',jp:'日付',en:'Date'}),L({vi:'Phân khúc',jp:'区分',en:'Segment'}),L({vi:'Khách',jp:'顧客',en:'Client'}),L({vi:'Tên tòa nhà',jp:'建物名',en:'Building'}),L({vi:'Địa chỉ',jp:'住所',en:'Address'}),L({vi:'Email',jp:'メール',en:'Email'}),L({vi:'Tiền nhà',jp:'家賃',en:'Rent'}),L({vi:'Tiền quản lý',jp:'管理費',en:'Mgmt fee'}),L({vi:'Công ty QL',jp:'管理会社',en:'Mgmt company'}),L({vi:'TEL công ty QL',jp:'管理会社TEL',en:'Mgmt company TEL'}),L({vi:'Nhân viên',jp:'スタッフ',en:'Staff'})];
+  var head=[L({vi:'Ngày',jp:'日付',en:'Date'}),L({vi:'Phân khúc',jp:'区分',en:'Segment'}),L({vi:'Khách',jp:'顧客',en:'Client'}),L({vi:'Tên tòa nhà',jp:'建物名',en:'Building'}),L({vi:'Địa chỉ',jp:'住所',en:'Address'}),L({vi:'Email',jp:'メール',en:'Email'}),L({vi:'Tiền nhà',jp:'家賃',en:'Rent'}),L({vi:'Tiền quản lý',jp:'管理費',en:'Mgmt fee'}),L({vi:'Tiền cọc',jp:'申込金',en:'Deposit'}),L({vi:'Công ty QL',jp:'管理会社',en:'Mgmt company'}),L({vi:'TEL công ty QL',jp:'管理会社TEL',en:'Mgmt company TEL'}),L({vi:'Nhân viên',jp:'スタッフ',en:'Staff'})];
   head.push(L({vi:'Tình trạng xét duyệt',jp:'審査状況',en:'Approval status'}));
   if(comm)head.push(L({vi:'%HH',jp:'歩合%',en:'Comm %'}));
   head.push(L({vi:'Phí môi giới ¥',jp:'仲介手数料 ¥',en:'Brokerage fee ¥'}),'広告',L({vi:'売上',jp:'売上',en:'Sales'}));
   if(comm)head.push(L({vi:'DS sau thuế',jp:'課税後売上',en:'After-tax'}),L({vi:'NV thực lãnh',jp:'スタッフ手取り',en:'Staff net'}),L({vi:'Hoa hồng',jp:'歩合',en:'Commission'}));
   head.push(L({vi:'Dịch vụ đi kèm',jp:'付帯サービス',en:'Add-on services'}));
   var rows=periodDeals().map(function(d){var s=staffById(d.staffId);var sv='💡'+svcTr(d.svcUtil||'chưa đăng ký')+' / 📶'+svcTr(d.svcWifi||'chưa đăng ký');
-    var r=[d.date,segName(d.seg),d.clientName,d.bldgName||'',d.bldgAddr||'',d.clientEmail||'',d.rent||0,d.mgmtFee||0,d.mgmtName||'',d.mgmtPhone||'',s?s.name:''];r.push(d.status||'審査中');
+    var r=[d.date,segName(d.seg),d.clientName,d.bldgName||'',d.bldgAddr||'',d.clientEmail||'',d.rent||0,d.mgmtFee||0,d.deposit||0,d.mgmtName||'',d.mgmtPhone||'',s?s.name:''];r.push(d.status||'審査中');
     if(comm)r.push(commPctOf(s));
     r.push(d.broker,d.ad,dealSales(d));
     if(comm)r.push(dealNet(d),dealComm(d),dealComm(d));
     r.push(sv);return r;});
   return [head].concat(rows);
 }
-function renderDeal(){
+function captureDealForm(){var o={},F=['dId','dDate','dSalaryMonth','dSeg','dClient','dPhone','dEmail','dBldgName','dBldgAddr','dStaff','dRent','dMgmtFee','dDeposit','dAd','dBroker','dTax','dMgmtName','dMgmtPhone','dSvcUtil','dSvcWifi','dSupport','dSupportAmt','dSupportPct'];var any=false;F.forEach(function(k){var el=document.getElementById(k);if(el){o[k]=el.value;any=true;}});return any?o:null;}
+function restoreDealForm(o){if(!o)return;Object.keys(o).forEach(function(k){var el=document.getElementById(k);if(el&&typeof o[k]!=='undefined')el.value=o[k];});}
+function toast(msg,type){var c=document.getElementById('nshToast');if(!c){c=document.createElement('div');c.id='nshToast';c.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none';document.body.appendChild(c);}var t=document.createElement('div');var bg=(type==='err')?'#d64545':'#0F6E56';t.style.cssText='background:'+bg+';color:#fff;padding:11px 20px;border-radius:10px;font-size:14px;font-weight:700;box-shadow:0 6px 24px rgba(0,0,0,.25);opacity:0;transform:translateY(10px);transition:all .25s;max-width:90vw;text-align:center';t.textContent=msg;c.appendChild(t);requestAnimationFrame(function(){t.style.opacity='1';t.style.transform='translateY(0)';});setTimeout(function(){t.style.opacity='0';t.style.transform='translateY(10px)';setTimeout(function(){if(t.parentNode)t.parentNode.removeChild(t);},300);},(type==='err')?3200:2200);}
+function renderDeal(){var _dDraft=captureDealForm();
   const opts=S.staff.map(s=>`<option value="${s.id}">${escH(s.name)}</option>`).join('');
   const segOpts=SEGMENTS.map(s=>`<option value="${s}">${segName(s)}</option>`).join('');
   const bldgOpts=bldgDatalistOpts();
@@ -849,6 +860,7 @@ function renderDeal(){
       <div class="fld"><label>${L({vi:'Nhân viên phụ trách',jp:'担当スタッフ',en:'Staff in charge'})}</label><select id="dStaff" onchange="dealPreview()">${opts}</select></div>
       <div class="fld"><label>${L({vi:'Tiền nhà 家賃 (¥)',jp:'家賃 (¥)',en:'Rent (¥)'})}</label><input type="number" id="dRent" placeholder="0"></div>
       <div class="fld"><label>${L({vi:'Tiền quản lý 管理費 (¥)',jp:'管理費 (¥)',en:'Management fee (¥)'})}</label><input type="number" id="dMgmtFee" placeholder="0"></div>
+      <div class="fld"><label>${L({vi:'Tiền cọc 申込金 (¥)',jp:'申込金 (¥)',en:'Deposit 申込金 (¥)'})}</label><input type="number" id="dDeposit" min="0" placeholder="0"></div>
       <div class="fld"><label>${L({vi:'Doanh số 売上 = AD + 仲介 (tự động, ¥)',jp:'売上＝広告＋仲介（自動, ¥）',en:'Sales = AD + brokerage (auto, ¥)'})}</label><input id="dSales" readonly></div>
       <div class="fld"><label>${L({vi:'広告料 AD (¥)',jp:'広告料 (¥)',en:'Advertising (¥)'})}</label><input type="number" id="dAd" oninput="dealPreview()" placeholder="0"></div>
       <div class="fld"><label>${L({vi:'Phí môi giới 仲介手数料 (¥)',jp:'仲介手数料 (¥)',en:'Brokerage fee (¥)'})}</label><input type="number" id="dBroker" oninput="dealPreview()" placeholder="0"></div>
@@ -875,13 +887,13 @@ function renderDeal(){
     </div>
     <div class="btnrow"><button class="btn" onclick="saveDeal()">${L({vi:'💾 Lưu giao dịch',jp:'💾 保存',en:'💾 Save'})}</button><button class="btn sec" onclick="clearDeal()">${L({vi:'Làm mới',jp:'リセット',en:'Reset'})}</button></div>
   </div>
-  <div class="panel"><h3><span class="ti">${L({vi:'Danh sách giao dịch',jp:'取引一覧',en:'Transaction list'})} · ${periodLabel()}</span>
+  <div class="panel" id="dealListPanel"><h3><span class="ti">${L({vi:'Danh sách giao dịch',jp:'取引一覧',en:'Transaction list'})} · ${periodLabel()}</span>
     <span><button class="btn sec sm" onclick="exportPDF('deal')">⤓ PDF</button> <button class="btn sec sm" onclick="exportExcel('deal')">⤓ Excel</button></span></h3>
     <div style="margin:0 0 10px;font-size:13px;color:var(--g500)">${L({vi:'Lọc theo nhân viên',jp:'スタッフで絞り込み',en:'Filter by staff'})}: ${staffFilterSelect('deal')}</div>
     ${dealRowsTable(filtDeals('deal'),{comm:false,actions:true,empty:{vi:'Chưa có giao dịch trong kỳ',jp:'この期間の取引なし',en:'No deals in this period'}})}
   </div>`;
   document.getElementById('dDate').value=VIEW.month+'-'+new Date().getDate().toString().padStart(2,'0');
-  dealPreview();
+  dealPreview();restoreDealForm(_dDraft);if(d_('dStaff'))dealPreview();
 }
 function dealPreview(){
   const s=staffById(d_('dStaff').value);const p=commPctOf(s);
@@ -892,11 +904,11 @@ function dealPreview(){
   d_('dNet').value=yen(net);d_('dEarn').value=yen(Math.round(net*p/100));
 }
 function d_(id){return document.getElementById(id);}
-function clearDeal(){['dId','dClient','dPhone','dEmail','dBldgName','dBldgAddr','dAd','dBroker','dRent','dMgmtFee','dMgmtName','dMgmtPhone','dTax','dSupportAmt','dSupportPct','dSalaryMonth'].forEach(i=>{if(d_(i))d_(i).value='';});['dSvcUtil','dSvcWifi'].forEach(i=>{if(d_(i))d_(i).value='chưa đăng ký';});if(d_('dSupport'))d_('dSupport').value='';renderDeal();}
+function clearDeal(){['dId','dClient','dPhone','dEmail','dBldgName','dBldgAddr','dAd','dBroker','dRent','dMgmtFee','dDeposit','dMgmtName','dMgmtPhone','dTax','dSupportAmt','dSupportPct','dSalaryMonth'].forEach(i=>{if(d_(i))d_(i).value='';});['dSvcUtil','dSvcWifi'].forEach(i=>{if(d_(i))d_(i).value='chưa đăng ký';});if(d_('dSupport'))d_('dSupport').value='';renderDeal();}
 function editDeal(id){const d=S.deals.find(x=>x.id===id);if(!d)return;switchTab('deal');setTimeout(()=>{
   d_('dId').value=d.id;d_('dDate').value=d.date;if(d_('dSalaryMonth'))d_('dSalaryMonth').value=dealSalaryMonth(d);d_('dSeg').value=d.seg;d_('dClient').value=d.clientName||'';d_('dPhone').value=d.clientPhone||'';d_('dEmail').value=d.clientEmail||'';if(d_('dBldgName'))d_('dBldgName').value=d.bldgName||'';if(d_('dBldgAddr'))d_('dBldgAddr').value=d.bldgAddr||'';
   d_('dStaff').value=d.staffId;d_('dAd').value=d.ad||0;d_('dBroker').value=d.broker||0;
-  d_('dRent').value=d.rent||0;d_('dMgmtFee').value=d.mgmtFee||0;
+  d_('dRent').value=d.rent||0;d_('dMgmtFee').value=d.mgmtFee||0;d_('dDeposit').value=d.deposit||0;
   d_('dTax').value=(typeof d.taxPct==='number'?d.taxPct:((S.cfg&&typeof S.cfg.taxRate==='number')?S.cfg.taxRate:10));
   d_('dMgmtName').value=d.mgmtName||'';d_('dMgmtPhone').value=d.mgmtPhone||'';
   d_('dSvcUtil').value=d.svcUtil||'chưa đăng ký';d_('dSvcWifi').value=d.svcWifi||'chưa đăng ký';if(d_('dSupport'))d_('dSupport').value=d.supportId||'';if(d_('dSupportAmt'))d_('dSupportAmt').value=d.supportAmt||'';if(d_('dSupportPct'))d_('dSupportPct').value=d.supportPct||'';dealPreview();},30);}
@@ -908,19 +920,19 @@ function saveDeal(){
   const ad=+d_('dAd').value||0, broker=+d_('dBroker').value||0;
   var _tx=(d_('dTax').value||'').trim();var taxPct=(_tx==='')?NaN:+_tx;if(isNaN(taxPct)||taxPct<0||taxPct>100)taxPct=(S.cfg&&typeof S.cfg.taxRate==='number')?S.cfg.taxRate:10;
   const o={id:id||uid('d'),date:d_('dDate').value,seg:d_('dSeg').value,clientName:d_('dClient').value.trim(),
-    clientPhone:d_('dPhone').value.trim(),clientEmail:d_('dEmail').value.trim(),bldgName:d_('dBldgName').value.trim(),bldgAddr:d_('dBldgAddr').value.trim(),staffId:d_('dStaff').value,ad,broker,taxPct,rent:+d_('dRent').value||0,mgmtFee:+d_('dMgmtFee').value||0,
+    clientPhone:d_('dPhone').value.trim(),clientEmail:d_('dEmail').value.trim(),bldgName:d_('dBldgName').value.trim(),bldgAddr:d_('dBldgAddr').value.trim(),staffId:d_('dStaff').value,ad,broker,taxPct,rent:+d_('dRent').value||0,mgmtFee:+d_('dMgmtFee').value||0,deposit:Math.max(0,+(d_('dDeposit')&&d_('dDeposit').value||0)),
     mgmtName:d_('dMgmtName').value.trim(),mgmtPhone:d_('dMgmtPhone').value.trim(),
     svcUtil:d_('dSvcUtil').value,svcWifi:d_('dSvcWifi').value,supportId:(d_('dSupport')?d_('dSupport').value:''),supportAmt:Math.max(0,+(d_('dSupportAmt')&&d_('dSupportAmt').value||0)),supportPct:Math.min(100,Math.max(0,+(d_('dSupportPct')&&d_('dSupportPct').value||0))),status:(_prev.status||'審査中'),salaryMonth:((d_('dSalaryMonth')&&d_('dSalaryMonth').value)||'')||((d_('dDate').value||'').slice(0,7))};
   var _req=[['dDate',{vi:'Ngày giao dịch',jp:'取引日',en:'Deal date'}],['dSeg',{vi:'Phân khúc',jp:'事業分野',en:'Segment'}],['dClient',{vi:'Tên khách hàng',jp:'顧客名',en:'Client name'}],['dPhone',{vi:'SĐT khách hàng',jp:'顧客電話',en:'Client phone'}],['dEmail',{vi:'Email khách hàng',jp:'顧客メール',en:'Client email'}],['dBldgName',{vi:'Tên tòa nhà',jp:'建物名',en:'Building name'}],['dBldgAddr',{vi:'Địa chỉ tòa nhà',jp:'建物住所',en:'Building address'}],['dStaff',{vi:'Nhân viên phụ trách',jp:'担当スタッフ',en:'Staff in charge'}],['dAd',{vi:'広告料 AD',jp:'広告料',en:'Advertising'}],['dBroker',{vi:'Phí môi giới 仲介手数料',jp:'仲介手数料',en:'Brokerage'}],['dTax',{vi:'Thuế / khấu trừ (%)',jp:'税・控除(%)',en:'Tax (%)'}],['dRent',{vi:'Tiền nhà 家賃',jp:'家賃',en:'Rent'}],['dMgmtFee',{vi:'Tiền quản lý 管理費',jp:'管理費',en:'Mgmt fee'}],['dMgmtName',{vi:'Công ty quản lý',jp:'管理会社',en:'Mgmt company'}],['dMgmtPhone',{vi:'TEL công ty QL',jp:'管理会社TEL',en:'Mgmt phone'}],['dSvcUtil',{vi:'Đăng ký điện/nước/ga',jp:'電気・水道・ガス',en:'Utility'}],['dSvcWifi',{vi:'Tư vấn đăng ký WiFi',jp:'WiFi',en:'WiFi'}]];
-  for(var _i=0;_i<_req.length;_i++){var _el=d_(_req[_i][0]);if(!_el||(''+_el.value).trim()===''){alert(L({vi:'Vui lòng điền đầy đủ. Còn thiếu: ',jp:'すべて入力してください。未入力：',en:'Please fill all fields. Missing: '})+L(_req[_i][1]));return;}}
-  if(o.broker<0||o.ad<0||(o.rent||0)<0||(o.mgmtFee||0)<0){alert(L({vi:'Số tiền không được âm',jp:'金額は負の値にできません',en:'Amounts cannot be negative'}));return;}
+  for(var _i=0;_i<_req.length;_i++){var _el=d_(_req[_i][0]);if(!_el||(''+_el.value).trim()===''){toast(L({vi:'Chưa thành công, vui lòng kiểm tra lại!',jp:'保存できません。確認してください！',en:'Not saved, please check again!'})+' ('+L(_req[_i][1])+')','err');return;}}
+  if(o.broker<0||o.ad<0||(o.rent||0)<0||(o.mgmtFee||0)<0){toast(L({vi:'Chưa thành công, vui lòng kiểm tra lại!',jp:'保存できません。確認してください！',en:'Not saved, please check again!'})+' ('+L({vi:'số tiền không hợp lệ',jp:'金額エラー',en:'amount error'})+')','err');return;}
   if(id){const i=S.deals.findIndex(x=>x.id===id);S.deals[i]=o;logH('Sửa giao dịch: '+(o.clientName||o.id));}else{S.deals.push(o);logH('Thêm giao dịch: '+(o.clientName||o.id));}
-  clearDealFields();save();switchTab('deal');
+  clearDealFields();save();switchTab('deal');toast(L({vi:'Đã lưu thành công!',jp:'保存しました！',en:'Saved successfully!'}),'ok');setTimeout(function(){var _lp=document.getElementById('dealListPanel');if(_lp)_lp.scrollIntoView({behavior:'smooth',block:'start'});},120);
 }
 function bldgRegistry(){var best={};(S.deals||[]).forEach(function(d){var n=(d.bldgName||'').trim();if(!n)return;var a=(d.bldgAddr||'').trim();var dt=d.date||'';if(!best[n])best[n]={addr:a,date:dt};else if(a&&dt>=best[n].date)best[n]={addr:a,date:dt};});return best;}
 function bldgDatalistOpts(){var reg=bldgRegistry();return Object.keys(reg).sort().map(function(n){return '<option value="'+escH(n)+'">'+(reg[n].addr?escH(reg[n].addr):'')+'</option>';}).join('');}
 function bldgAutofill(){var ni=d_('dBldgName'),ai=d_('dBldgAddr');if(!ni||!ai)return;var n=(ni.value||'').trim();if(!n)return;var reg=bldgRegistry();if(reg[n]&&reg[n].addr&&!(ai.value||'').trim())ai.value=reg[n].addr;}
-function clearDealFields(){['dId','dClient','dPhone','dEmail','dBldgName','dBldgAddr','dAd','dBroker','dRent','dMgmtFee','dMgmtName','dMgmtPhone','dTax','dSupportAmt','dSupportPct','dSalaryMonth'].forEach(i=>{if(d_(i))d_(i).value='';});['dSvcUtil','dSvcWifi'].forEach(i=>{if(d_(i))d_(i).value='chưa đăng ký';});if(d_('dSupport'))d_('dSupport').value='';}
+function clearDealFields(){['dId','dClient','dPhone','dEmail','dBldgName','dBldgAddr','dAd','dBroker','dRent','dMgmtFee','dDeposit','dMgmtName','dMgmtPhone','dTax','dSupportAmt','dSupportPct','dSalaryMonth'].forEach(i=>{if(d_(i))d_(i).value='';});['dSvcUtil','dSvcWifi'].forEach(i=>{if(d_(i))d_(i).value='chưa đăng ký';});if(d_('dSupport'))d_('dSupport').value='';}
 
 /* ----- KHÁCH HÀNG (tự điền từ deal) ----- */
 function clientsFromDeals(deals){
@@ -1092,7 +1104,11 @@ function staffDeductTotal(id){var d=staffDeduct(id);return (+d.bhxh||0)+(+d.bhtn
 function companyDeductByType(){var t={bhxh:0,bhtn:0,tax:0,other:0};(S.staff||[]).forEach(function(s){var d=staffDeduct(s.id);t.bhxh+=+d.bhxh||0;t.bhtn+=+d.bhtn||0;t.tax+=+d.tax||0;t.other+=+d.other||0;});return t;}
 function companyDeductTotal(){var t=companyDeductByType();return t.bhxh+t.bhtn+t.tax+t.other;}
 function saveDeduct(id,field,val,reopen){staffDeduct(id)[field]=Math.max(0,+val||0);logH('Sửa lương ['+field+']: '+((staffById(id)||{}).name||id));save();if(reopen)payslip(id,1);}
-function renderPayroll(){
+function supportPayrollRows(){return payrollDeals().filter(function(d){return isDone(d)&&d.supportId;}).map(function(d){var ov=supportOv()[d.id]||{};return {id:d.id,client:d.clientName||'',bldg:d.bldgName||'',staff:(staffById(d.supportId)||{}).name||'',pct:+d.supportPct||0,amt:+d.supportAmt||0,auto:dealSupportPay(d),total:effectiveSupportPay(d),manual:(typeof ov.amount==='number'&&!ov.deleted),deleted:!!ov.deleted};});}
+function supportPayrollTable(){var rows=supportPayrollRows();var tot=rows.reduce(function(x,r){return x+r.total;},0);var body=rows.map(function(r,i){if(r.deleted)return '<tr style="opacity:.55;background:#fbf3f3"><td>'+(i+1)+'</td><td style="text-decoration:line-through">'+escH(r.client)+'</td><td style="text-decoration:line-through">'+escH(r.bldg||'—')+'</td><td style="text-decoration:line-through">'+escH(r.staff)+'</td><td>'+(r.pct?r.pct+'%':'—')+'</td><td class="yen">'+(r.amt?yen(r.amt):'—')+'</td><td class="yen" style="text-decoration:line-through;color:var(--g500)">'+yen(r.auto)+'</td><td><span class="tag" style="background:#fde2e2;color:#b03030;font-size:10px;padding:1px 6px">'+L({vi:'đã ẩn',jp:'非表示',en:'hidden'})+'</span> <button class="btn sec sm" onclick="resetSupportOv(\''+r.id+'\')" title="'+L({vi:'Khôi phục',jp:'復元',en:'Restore'})+'">↺</button></td></tr>';var badge=r.manual?'<span class="tag" style="background:#fff3cd;color:#8a6d00;font-size:10px;padding:1px 6px">✎ '+L({vi:'thủ công',jp:'手動',en:'manual'})+'</span>':'<span class="tag" style="background:#e2f0e9;color:#0F6E56;font-size:10px;padding:1px 6px">'+L({vi:'tự động',jp:'自動',en:'auto'})+'</span>';var reset=r.manual?' <button class="btn sec sm" onclick="resetSupportOv(\''+r.id+'\')" title="'+L({vi:'Về tự động',jp:'自動に戻す',en:'Back to auto'})+'">↺</button>':'';return '<tr'+(r.manual?' style="background:#fffdf5"':'')+'><td>'+(i+1)+'</td><td>'+escH(r.client)+'</td><td>'+escH(r.bldg||'—')+'</td><td>'+escH(r.staff)+'</td><td>'+(r.pct?r.pct+'%':'—')+'</td><td class="yen">'+(r.amt?yen(r.amt):'—')+'</td><td><input type="number" min="0" style="width:104px;padding:3px 6px;font-weight:700;text-align:right" value="'+r.total+'" onchange="setSupportOv(\''+r.id+'\',this.value)" title="'+L({vi:'Sửa tay — deal gốc không đổi',jp:'手動編集 — 取引は変更されません',en:'Manual edit — deal unchanged'})+'"></td><td>'+badge+reset+' <button class="btn dg sm" onclick="delSupportOv(\''+r.id+'\')" title="'+L({vi:'Ẩn dòng',jp:'行を非表示',en:'Hide row'})+'">🗑</button></td></tr>';}).join('')||('<tr><td colspan="8" style="text-align:center;color:var(--g500)">'+L({vi:'Chưa có giao dịch có nhân viên hỗ trợ',jp:'サポート担当付き取引なし',en:'No deals with support staff'})+'</td></tr>');return '<div class="panel" style="margin-top:14px"><h3><span class="ti">🤝 '+L({vi:'Lương nhân viên hỗ trợ',jp:'サポートスタッフ給与',en:'Assistant staff payroll'})+'</span></h3><div class="sub">'+L({vi:'Tự động từ Nhập Deal (chỉ deal 契約完了) · có thể sửa số hoặc ẩn dòng thủ công khi sai — deal gốc không đổi',jp:'取引入力から自動（契約完了のみ）· 金額の手動修正・行の非表示が可能（取引は変更されません）',en:'Auto from Deal entry (契約完了 only) · amount editable / row hideable manually — deal unchanged'})+'</div><div class="tw"><table class="tb"><thead><tr><th>'+L({vi:'STT',jp:'No.',en:'No.'})+'</th><th>'+L({vi:'Tên khách',jp:'顧客名',en:'Customer'})+'</th><th>'+L({vi:'Tên tòa nhà',jp:'建物名',en:'Building'})+'</th><th>'+L({vi:'Người hỗ trợ',jp:'サポート担当',en:'Support staff'})+'</th><th>'+L({vi:'Hoa hồng (%)',jp:'歩合(%)',en:'Comm %'})+'</th><th>'+L({vi:'Số tiền (¥)',jp:'金額(¥)',en:'Amount'})+'</th><th>'+L({vi:'Tổng (¥)',jp:'合計(¥)',en:'Total'})+'</th><th>'+L({vi:'Trạng thái / Thao tác',jp:'状態 / 操作',en:'Status / Action'})+'</th></tr></thead><tbody>'+body+'<tr style="background:var(--g50)"><td colspan="6" style="text-align:right"><b>'+L({vi:'TỔNG',jp:'合計',en:'TOTAL'})+'</b></td><td class="yen"><b>'+yen(tot)+'</b></td><td></td></tr></tbody></table></div></div>';}
+var PAYROLL_UX_INIT=false;
+function payrollUXInit(){if(PAYROLL_UX_INIT)return;PAYROLL_UX_INIT=true;var st=document.createElement('style');st.textContent='#t-payroll table.tb td,#t-payroll table.tb th{white-space:nowrap}#t-payroll table.tb tbody tr.row-active>td{background:#fff3cd!important}#t-payroll table.tb tbody tr.row-active>td:first-child{box-shadow:inset 3px 0 0 #e8a13a}';document.head.appendChild(st);document.addEventListener('focusin',function(e){var el=e.target;if(!el||!el.closest)return;if(!el.closest('#t-payroll'))return;var tr=el.closest('tr');if(!tr)return;var tb=tr.closest('tbody');if(!tb)return;Array.prototype.forEach.call(tb.querySelectorAll('tr.row-active'),function(x){x.classList.remove('row-active');});tr.classList.add('row-active');});}
+function renderPayroll(){payrollUXInit();
   const rows=payrollRows();const tot=rows.reduce((x,r)=>x+r.pay,0);
   const ct=companyDeductByType();const dedTot=ct.bhxh+ct.bhtn+ct.tax+ct.other;const takeTot=tot-dedTot;const cashTot=rows.reduce((x,r)=>x+r.cash,0);const bonusTot=rows.reduce((x,r)=>x+r.bonus,0);const kotsuTot=rows.reduce((x,r)=>x+r.kotsu,0);const lifelineTot=rows.reduce((x,r)=>x+r.lifeline,0);const supportTot=rows.reduce((x,r)=>x+r.support,0);const tongNhanTot=rows.reduce((x,r)=>x+r.tongNhan,0);const grossTot=rows.reduce((x,r)=>x+r.gross,0);const netTot=rows.reduce((x,r)=>x+r.net,0);
   document.getElementById('t-payroll').innerHTML=`
@@ -1114,19 +1130,19 @@ function renderPayroll(){
   </div>
   <div class="panel"><h3><span class="ti">${L({vi:'Bảng lương nhân viên',jp:'給与一覧',en:'Staff payroll'})}</span>
     <span><button class="btn sec sm" onclick="exportPDF('payroll')">⤓ PDF</button> <button class="btn sec sm" onclick="exportExcel('payroll')">⤓ Excel</button> <button class="btn sec sm" onclick="exportCSV('payroll')">⤓ CSV</button></span></h3>
-    <div class="tw"><table class="tb"><thead><tr><th>${L({vi:'Nhân viên',jp:'スタッフ',en:'Staff'})}</th><th>${L({vi:'Cấp bậc',jp:'等級',en:'Rank'})}</th><th>${L({vi:'Số GD',jp:'取引数',en:'Deals'})}</th><th>${L({vi:'Tổng doanh số',jp:'総売上',en:'Total sales'})}</th><th>${L({vi:'Doanh số sau khấu trừ',jp:'控除後売上',en:'Sales after deduction'})}</th><th>${L({vi:'% Hoa hồng',jp:'歩合率',en:'Commission %'})}</th><th>${L({vi:'BHXH',jp:'社会保険',en:'Social ins.'})}</th><th>${L({vi:'BH thất nghiệp',jp:'雇用保険',en:'Unempl. ins.'})}</th><th>${L({vi:'Thuế TN',jp:'所得税',en:'Income tax'})}</th><th>${L({vi:'その他',jp:'その他',en:'Other'})}</th><th>${L({vi:'Tổng thực lãnh',jp:'支給額合計',en:'Total payment'})}</th><th>${L({vi:'Thực lãnh sau khấu trừ',jp:'差引支給額',en:'Net after deductions'})}</th><th>${L({vi:'Thưởng doanh số',jp:'売上賞与',en:'Sales bonus'})}</th><th>${L({vi:'交通費',jp:'交通費',en:'Transport'})}</th><th>${L({vi:'ライフライン',jp:'ライフライン',en:'ライフライン'})}</th><th>${L({vi:'Hỗ trợ',jp:'サポート',en:'Support'})}</th><th>${L({vi:'Tổng nhận',jp:'受取合計',en:'Total received'})}</th><th>${L({vi:'Chi trả tiền mặt',jp:'現金支給額',en:'Cash payment'})}</th><th></th></tr></thead><tbody>
+    <div class="tw"><table class="tb"><thead><tr><th>${L({vi:'Nhân viên',jp:'スタッフ',en:'Staff'})}</th><th>${L({vi:'Cấp bậc',jp:'等級',en:'Rank'})}</th><th>${L({vi:'Số GD',jp:'取引数',en:'Deals'})}</th><th>${L({vi:'Tổng doanh số',jp:'総売上',en:'Total sales'})}</th><th>${L({vi:'Doanh số sau khấu trừ',jp:'控除後売上',en:'Sales after deduction'})}</th><th>${L({vi:'% Hoa hồng',jp:'歩合率',en:'Commission %'})}</th><th>${L({vi:'BHXH',jp:'社会保険',en:'Social ins.'})}</th><th>${L({vi:'BH thất nghiệp',jp:'雇用保険',en:'Unempl. ins.'})}</th><th>${L({vi:'Thuế TN',jp:'所得税',en:'Income tax'})}</th><th>${L({vi:'その他',jp:'その他',en:'Other'})}</th><th>${L({vi:'Tổng thực lãnh',jp:'支給額合計',en:'Total payment'})}</th><th>${L({vi:'Thực lãnh sau khấu trừ',jp:'差引支給額',en:'Net after deductions'})}</th><th>${L({vi:'Thưởng doanh số',jp:'売上賞与',en:'Sales bonus'})}</th><th>${L({vi:'交通費',jp:'交通費',en:'Transport'})}</th><th>${L({vi:'Lương hỗ trợ',jp:'サポート給与',en:'Support pay'})}</th><th>${L({vi:'ライフライン',jp:'ライフライン',en:'ライフライン'})}</th><th>${L({vi:'Tổng nhận',jp:'受取合計',en:'Total received'})}</th><th>${L({vi:'Chi trả tiền mặt',jp:'現金支給額',en:'Cash payment'})}</th><th></th></tr></thead><tbody>
     ${rows.map(r=>`<tr><td><b>${r.s.name}</b></td><td><span class="tag ${r.s.rank.toLowerCase()}">${rkName(r.s.rank)}</span></td><td>${r.count}</td><td class="yen">${yen(r.gross)}</td><td class="yen">${yen(r.net)}</td><td>${r.p}%</td>
       <td><input type="number" style="width:90px;padding:3px 6px" value="${r.dd.bhxh||''}" onchange="saveDeduct('${r.s.id}','bhxh',this.value)" placeholder="0"></td>
       <td><input type="number" style="width:90px;padding:3px 6px" value="${r.dd.bhtn||''}" onchange="saveDeduct('${r.s.id}','bhtn',this.value)" placeholder="0"></td>
       <td><input type="number" style="width:90px;padding:3px 6px" value="${r.dd.tax||''}" onchange="saveDeduct('${r.s.id}','tax',this.value)" placeholder="0"></td>
       <td><input type="number" style="width:90px;padding:3px 6px" value="${r.dd.other||''}" onchange="saveDeduct('${r.s.id}','other',this.value)" placeholder="0"></td>
-      <td class="yen"><b>${yen(r.pay)}</b></td><td class="yen"><b>${yen(r.take)}</b></td><td><input type="number" style="width:90px;padding:3px 6px" value="${r.dd.bonus||''}" onchange="saveDeduct('${r.s.id}','bonus',this.value)" placeholder="0"></td><td>${kotsuCell(r)}</td><td class="yen">${yen(r.lifeline)}</td><td class="yen">${yen(r.support)}</td><td class="yen"><b>${yen(r.tongNhan)}</b></td><td class="yen">${yen(r.cash)}</td>
+      <td class="yen"><b>${yen(r.pay)}</b></td><td class="yen"><b>${yen(r.take)}</b></td><td><input type="number" style="width:90px;padding:3px 6px" value="${r.dd.bonus||''}" onchange="saveDeduct('${r.s.id}','bonus',this.value)" placeholder="0"></td><td>${kotsuCell(r)}</td><td class="yen">${yen(r.support)}</td><td class="yen">${yen(r.lifeline)}</td><td class="yen"><b>${yen(r.tongNhan)}</b></td><td class="yen">${yen(r.cash)}</td>
       <td><button class="btn sec sm" onclick="payslip('${r.s.id}')">🧾 ${L({vi:'Phiếu lương',jp:'給与明細',en:'Pay slip'})}</button></td></tr>`).join('')}
-    <tr style="background:var(--g50)"><td colspan=3><b>${L({vi:'TỔNG',jp:'合計',en:'TOTAL'})}</b></td><td class="yen"><b>${yen(grossTot)}</b></td><td class="yen"><b>${yen(netTot)}</b></td><td></td><td class="yen"><b>${yen(ct.bhxh)}</b></td><td class="yen"><b>${yen(ct.bhtn)}</b></td><td class="yen"><b>${yen(ct.tax)}</b></td><td class="yen"><b>${yen(ct.other)}</b></td><td class="yen"><b>${yen(tot)}</b></td><td class="yen"><b>${yen(takeTot)}</b></td><td class="yen"><b>${yen(bonusTot)}</b></td><td class="yen"><b>${yen(kotsuTot)}</b></td><td class="yen"><b>${yen(lifelineTot)}</b></td><td class="yen"><b>${yen(supportTot)}</b></td><td class="yen"><b>${yen(tongNhanTot)}</b></td><td class="yen"><b>${yen(cashTot)}</b></td><td></td></tr>
+    <tr style="background:var(--g50)"><td colspan=3><b>${L({vi:'TỔNG',jp:'合計',en:'TOTAL'})}</b></td><td class="yen"><b>${yen(grossTot)}</b></td><td class="yen"><b>${yen(netTot)}</b></td><td></td><td class="yen"><b>${yen(ct.bhxh)}</b></td><td class="yen"><b>${yen(ct.bhtn)}</b></td><td class="yen"><b>${yen(ct.tax)}</b></td><td class="yen"><b>${yen(ct.other)}</b></td><td class="yen"><b>${yen(tot)}</b></td><td class="yen"><b>${yen(takeTot)}</b></td><td class="yen"><b>${yen(bonusTot)}</b></td><td class="yen"><b>${yen(kotsuTot)}</b></td><td class="yen"><b>${yen(supportTot)}</b></td><td class="yen"><b>${yen(lifelineTot)}</b></td><td class="yen"><b>${yen(tongNhanTot)}</b></td><td class="yen"><b>${yen(cashTot)}</b></td><td></td></tr>
     </tbody></table></div>
     <div class="co">${coLine()}</div>
   </div>
-  <div id="payslipBox"></div>`;
+  ${supportPayrollTable()}<div id="payslipBox"></div>`;
 }
 /* ===== PHIẾU LƯƠNG KIỂU NHẬT (給与明細書) — NASON HOME ===== */
 var PS_LOGO='data:image/png;base64,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';
@@ -1137,22 +1153,23 @@ function jdate(s){if(!s)return '';var p=String(s).split('-');return p.length===3
 function psData(id){
   var r=payrollRows().find(function(x){return x.s.id===id;});if(!r)return null;var dd=r.dd;
   function g(k){return +dd[k]||0;}
-  var base=r.pay;
-  var A={teate:g('teate'),kotsuT:g('kotsuT'),rafu:g('rafu'),sonota:g('sonota'),zangyo:g('zangyo'),kyuteate:g('kyuteate'),shinya:g('shinya'),naiken:g('naiken'),kazei:g('kazei'),hikazei:g('hikazei')};
-  var shikyu=base+A.teate+A.kotsuT+A.rafu+A.sonota+A.zangyo+A.kyuteate+A.shinya+A.naiken+A.kazei+A.hikazei;
-  var D={kenko:g('kenko'),kaigo:g('kaigo'),kosei:g('kosei'),koyo:g('koyo'),shotoku:g('shotoku'),jumin:g('jumin')};
+  var base=r.pay;var base2=g('base2');
+  var A={teate:g('bonus'),kotsuT:g('kotsu'),rafu:g('rafu'),sonota:g('other'),zangyo:g('zangyo'),kyuteate:g('kyuteate'),shinya:g('shinya'),naiken:g('naiken'),kazei:g('kazei'),hikazei:g('hikazei')};
+  var shikyu=base+base2+A.teate+A.kotsuT+A.rafu+A.sonota+A.zangyo+A.kyuteate+A.shinya+A.naiken+A.kazei+A.hikazei;
+  var D={kenko:g('bhxh'),kaigo:g('kaigo'),kosei:g('kosei'),koyo:g('bhtn'),shotoku:g('tax'),jumin:g('jumin')};
   var kojo=D.kenko+D.kaigo+D.kosei+D.koyo+D.shotoku+D.jumin;
   var shaho=D.kenko+D.kaigo+D.kosei+D.koyo;
   var kazeiTaisho=shikyu-A.hikazei;
   var sashihiki=shikyu-kojo;
   var genkin=g('genkin');var furikomi=sashihiki-genkin;
-  return {r:r,base:base,A:A,D:D,shikyu:shikyu,kojo:kojo,shaho:shaho,kazeiTaisho:kazeiTaisho,sashihiki:sashihiki,genkin:genkin,furikomi:furikomi};
+  return {r:r,base:base,base2:base2,A:A,D:D,shikyu:shikyu,kojo:kojo,shaho:shaho,kazeiTaisho:kazeiTaisho,sashihiki:sashihiki,genkin:genkin,furikomi:furikomi};
 }
 
 /* ô nhập tay (yen) / tính sẵn / chấm công */
 function _y(id,k,v,mode){if(mode==='edit')return '<td class="psV"><input type="number" value="'+(v||'')+'" placeholder="0" onchange="saveDeduct(\''+id+'\',\''+k+'\',this.value,true)"></td>';return '<td class="psV yenc">'+yen(v)+'</td>';}
 function _n(id,k,v,mode){if(mode==='edit')return '<td class="psV"><input type="number" value="'+(v||'')+'" onchange="saveDeduct(\''+id+'\',\''+k+'\',this.value,true)"></td>';return '<td class="psV">'+(v||'')+'</td>';}
 function _c(v){return '<td class="psV calc yenc">'+yen(v)+'</td>';}
+function _ro(v){return '<td class="psV yenc">'+yen(v)+'</td>';}
 function _L(t,cls){return '<td class="psL '+(cls||'')+'">'+t+'</td>';}
 function _b(n){var s='';for(var i=0;i<(n||1);i++)s+='<td class="psE"></td>';return s;}
 function _sec(t){return '<tr><td class="psSec" colspan="5">'+t+'</td></tr>';}
@@ -1169,8 +1186,10 @@ function psHTML(id,mode){
   t+='<tr>'+_n(id2,'shotei',dval('shotei'),mode)+_n(id2,'jikangai',dval('jikangai'),mode)+_n(id2,'kyurou',dval('kyurou'),mode)+_n(id2,'shinyaT',dval('shinyaT'),mode)+_n(id2,'chikokuT',dval('chikokuT'),mode)+'</tr>';
   // 支給
   t+=_sec(L({vi:'Khoản chi trả',jp:'支給項目',en:'Earnings'}));
-  t+='<tr>'+_L('基本給')+_L('手当')+_L('交通手当')+_L('ラフライン')+_L('そのほか')+'</tr>';
-  t+='<tr>'+_c(p.base)+_y(id2,'teate',p.A.teate,mode)+_y(id2,'kotsuT',p.A.kotsuT,mode)+_y(id2,'rafu',p.A.rafu,mode)+_y(id2,'sonota',p.A.sonota,mode)+'</tr>';
+  t+='<tr>'+_L('基本給')+_L('基本給2')+_b(3)+'</tr>';
+  t+='<tr>'+_c(p.base)+_y(id2,'base2',p.base2,mode)+_b(3)+'</tr>';
+  t+='<tr>'+_L('手当')+_L('交通手当')+_L('ラフライン')+_L('そのほか')+_L('')+'</tr>';
+  t+='<tr>'+_ro(p.A.teate)+_ro(p.A.kotsuT)+_y(id2,'rafu',p.A.rafu,mode)+_ro(p.A.sonota)+_b(1)+'</tr>';
   t+='<tr>'+_L('普通残業手当')+_L('休日手当')+_L('深夜手当')+_L('内見交通費')+_L('課税通勤手当')+'</tr>';
   t+='<tr>'+_y(id2,'zangyo',p.A.zangyo,mode)+_y(id2,'kyuteate',p.A.kyuteate,mode)+_y(id2,'shinya',p.A.shinya,mode)+_y(id2,'naiken',p.A.naiken,mode)+_y(id2,'kazei',p.A.kazei,mode)+'</tr>';
   t+='<tr>'+_L('非課税通勤手当')+_b(3)+_L('支給額合計','psTot')+'</tr>';
@@ -1178,9 +1197,9 @@ function psHTML(id,mode){
   // 控除
   t+=_sec(L({vi:'Khấu trừ',jp:'控除項目',en:'Deductions'}));
   t+='<tr>'+_L('健康保険')+_L('介護保険')+_L('厚生年金')+_L('雇用保険')+_L('')+'</tr>';
-  t+='<tr>'+_y(id2,'kenko',p.D.kenko,mode)+_y(id2,'kaigo',p.D.kaigo,mode)+_y(id2,'kosei',p.D.kosei,mode)+_y(id2,'koyo',p.D.koyo,mode)+_b(1)+'</tr>';
+  t+='<tr>'+_ro(p.D.kenko)+_y(id2,'kaigo',p.D.kaigo,mode)+_y(id2,'kosei',p.D.kosei,mode)+_ro(p.D.koyo)+_b(1)+'</tr>';
   t+='<tr>'+_L('所得税')+_L('住民税')+_b(2)+_L('控除額合計','psTot')+'</tr>';
-  t+='<tr>'+_y(id2,'shotoku',p.D.shotoku,mode)+_y(id2,'jumin',p.D.jumin,mode)+_b(2)+_c(p.kojo)+'</tr>';
+  t+='<tr>'+_ro(p.D.shotoku)+_y(id2,'jumin',p.D.jumin,mode)+_b(2)+_c(p.kojo)+'</tr>';
   // 合計
   t+=_sec(L({vi:'Tổng hợp',jp:'合計',en:'Totals'}));
   t+='<tr>'+_L('社会保険合計')+_L('課税対象額')+_b(3)+'</tr>';
